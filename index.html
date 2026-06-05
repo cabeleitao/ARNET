@@ -218,6 +218,7 @@ const MNAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto
 const MSHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 let LIVE = [];   // datos en vivo del mes actual desde Drive
+let LIVE_DAILY = []; // filas diarias para kanban
 let ALL = [];    // HIST + LIVE merged
 let lineChart = null;
 
@@ -242,7 +243,9 @@ async function fetchData(){
     const json = await res.json();
     if(json.error) throw new Error(json.error);
 
-    // Aggregate live rows into monthly totals by category
+    // Keep daily rows for kanban
+    LIVE_DAILY = json.rows.filter(r=>r.amt!==0);
+    // Aggregate into monthly totals for KPIs/bars/chart
     const liveMap = {};
     json.rows.filter(r=>r.amt!==0).forEach(r=>{
       const k=`${r.y}_${r.m}_${r.cat}`;
@@ -275,18 +278,21 @@ function getActiveMes(){
 }
 
 function populateMesSelect(){
-  const sel = document.getElementById('mesSelect');
-  // Get all unique year-month combos from ALL data
-  const mesSet = new Set();
-  ALL.forEach(r => mesSet.add(r.y+'-'+String(r.m).padStart(2,'0')));
-  const meses = [...mesSet].sort().reverse();
-  const act = SELECTED_MES || getLatestMes();
-  const actKey = act.y+'-'+String(act.m).padStart(2,'0');
-  sel.innerHTML = meses.map(k=>{
-    const [y,m]=k.split('-');
-    return `<option value="${k}" ${k===actKey?'selected':''}>${MNAMES[parseInt(m)-1]} ${y}</option>`;
+  const sel=document.getElementById('mesSelect');
+  const mesSet=new Set();
+  // Add from historical data
+  HIST.forEach(r=>mesSet.add(r.y+'-'+String(r.m).padStart(2,'0')));
+  // Add from live data
+  LIVE.forEach(r=>mesSet.add(r.y+'-'+String(r.m).padStart(2,'0')));
+  const meses=[...mesSet].sort().reverse();
+  const act=SELECTED_MES||getLatestMes();
+  const actKey=act.y+'-'+String(act.m).padStart(2,'0');
+  sel.innerHTML=meses.map(k=>{
+    const[y,m]=k.split('-');
+    return`<option value="${k}" ${k===actKey?'selected':''}>${MNAMES[parseInt(m)-1]} ${y}</option>`;
   }).join('');
 }
+
 
 function changeMes(){
   const val = document.getElementById('mesSelect').value;
@@ -365,51 +371,57 @@ function buildWeeks(y,m){
   const ranges=[[1,7],[8,14],[15,21],[22,28]];
   if(dim>28)ranges.push([29,dim]);
   return ranges.map(([s,e])=>{
+    const end=Math.min(e,dim);
     const days=[];
-    for(let d=s;d<=Math.min(e,dim);d++)days.push(`${String(d).padStart(2,'0')}/${mm}/${yy}`);
-    return{lbl:`${s}–${Math.min(e,dim)}`,days};
+    for(let d=s;d<=end;d++)days.push(`${String(d).padStart(2,'0')}/${mm}/${yy}`);
+    return{lbl:`${s}–${end}`, startDay:s, endDay:end, days};
   });
 }
 
 function renderKanban(rows,act){
   const weeks=buildWeeks(act.y,act.m);
+  // Use LIVE_DAILY for months where we have daily data from Drive
+  const dailyRows=LIVE_DAILY.filter(r=>r.y===act.y&&r.m===act.m);
+  const useDailyData=dailyRows.length>0;
+
   document.getElementById('kanban').innerHTML=weeks.map(w=>{
     const wv={};
     RUBROS.forEach(c=>wv[c]=0);
-    // Check if rows have daily dates (d field like "01/06/26") or are monthly summaries
-    const hasDailyData = rows.some(r=>r.d && /^\d{2}\/\d{2}\/\d{2}$/.test(r.d));
-    if(hasDailyData){
-      // Match daily rows to this week's days
-      const wr=rows.filter(r=>{
-        if(!r.d) return false;
-        const dayNum = parseInt(r.d.split('/')[0]);
-        const[s,e]=w.lbl.split('–').map(Number);
-        return dayNum>=s && dayNum<=e;
+
+    if(useDailyData){
+      // Match each daily row to its week by day number
+      dailyRows.forEach(r=>{
+        if(!r.fecha) return;
+        const dayNum=parseInt(r.fecha.split('/')[0]);
+        if(dayNum>=w.startDay && dayNum<=w.endDay){
+          if(wv[r.cat]!==undefined) wv[r.cat]+=r.amt;
+        }
       });
-      wr.forEach(r=>{if(wv[r.cat]!==undefined)wv[r.cat]+=r.amt;});
-    } else {
-      // Monthly summary — show total only in week 1
-      if(w.lbl.startsWith('1')){
-        RUBROS.forEach(c=>wv[c]=sumCat(rows,c));
-      }
+    } else if(w.startDay===1){
+      // Monthly summary — only show in first week
+      RUBROS.forEach(c=>wv[c]=sumCat(rows,c));
     }
+    // All other weeks stay at 0 for monthly summary data
+
     const ing=wv['Ingresos'],baj=Math.abs(wv['Bajadas']);
     const gastoOp=RUBROS.filter(c=>c!=='Ingresos'&&c!=='Bajadas').reduce((s,c)=>s+wv[c],0);
     const neto=ing+baj+gastoOp;
+    const hasData=Object.values(wv).some(v=>v!==0);
     return `<div class="kcol">
-      <div class="khead"><span class="dot" style="background:${neto>=0?'#2dce89':'#f5365c'}"></span><span>${w.lbl}</span></div>
+      <div class="khead"><span class="dot" style="background:${!hasData?'#5a5f72':neto>=0?'#2dce89':'#f5365c'}"></span><span>${w.startDay}–${w.endDay}</span></div>
       ${RUBROS.map(cat=>{
         const v=wv[cat],isBaj=cat==='Bajadas',disp=isBaj?Math.abs(v):v;
         const col=isBaj?'var(--bl)':v>=0?'var(--gr)':'var(--rd)';
-        if(!v)return`<div class="kcard" style="opacity:.25"><div class="kcard-r">${cat}</div><div class="kcard-a" style="color:var(--mu)">—</div></div>`;
+        if(!v)return`<div class="kcard" style="opacity:.2"><div class="kcard-r">${cat}</div><div class="kcard-a" style="color:var(--mu)">—</div></div>`;
         return`<div class="kcard"><div class="kcard-r">${cat}${isBaj?' ✓':''}</div><div class="kcard-a" style="color:${col}">${fmt(disp)}</div></div>`;
       }).join('')}
-      <div class="kneto" style="background:${neto>=0?'rgba(45,206,137,.08)':'rgba(245,54,92,.08)'};border:1px solid ${neto>=0?'rgba(45,206,137,.2)':'rgba(245,54,92,.2)'};color:${neto>=0?'var(--gr)':'var(--rd)'}">
+      ${hasData?`<div class="kneto" style="background:${neto>=0?'rgba(45,206,137,.08)':'rgba(245,54,92,.08)'};border:1px solid ${neto>=0?'rgba(45,206,137,.2)':'rgba(245,54,92,.2)'};color:${neto>=0?'var(--gr)':'var(--rd)'}">
         ${fmt(neto)}
-      </div>
+      </div>`:''}
     </div>`;
   }).join('');
 }
+
 
 function renderChart(){
   const from=new Date(document.getElementById('dateFrom').value);
