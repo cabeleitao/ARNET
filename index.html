@@ -287,10 +287,14 @@ function populateMesSelect(){
   const meses=[...mesSet].sort().reverse();
   const act=SELECTED_MES||getLatestMes();
   const actKey=act.y+'-'+String(act.m).padStart(2,'0');
-  sel.innerHTML=meses.map(k=>{
-    const[y,m]=k.split('-');
-    return`<option value="${k}" ${k===actKey?'selected':''}>${MNAMES[parseInt(m)-1]} ${y}</option>`;
-  }).join('');
+  let opts='';
+  meses.forEach(k=>{
+    const parts=k.split('-');
+    const yn=parts[0], mn=parts[1];
+    const sel2=k===actKey?' selected':'';
+    opts+='<option value="'+k+'"'+sel2+'>'+MNAMES[parseInt(mn)-1]+' '+yn+'</option>';
+  });
+  sel.innerHTML=opts;
 }
 
 
