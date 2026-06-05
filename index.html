@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARNET Finanzas — Tablero en vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #141720;
+  --surface2: #1c2030;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #e8eaf0;
+  --muted: #7a7f94;
+  --green: #2dce89;
+  --green-dim: rgba(45,206,137,0.12);
+  --red: #f5365c;
+  --red-dim: rgba(245,54,92,0.12);
+  --blue: #4d9ef7;
+  --amber: #ffbe3d;
+  --purple: #9b8ff7;
+  --font-head: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* LOADER */
+#loader {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; z-index: 999;
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loader p { color: var(--muted); font-size: 12px; letter-spacing: .08em; }
+#app { display: none; }
+
+/* HEADER */
+.header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
+}
+.header-left h1 {
+  font-family: var(--font-head);
+  font-size: 22px; font-weight: 700; color: var(--text);
+  letter-spacing: -.01em;
+}
+.header-left p { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--green-dim); border: 1px solid rgba(45,206,137,0.2);
+  border-radius: 20px; padding: 5px 12px; font-size: 11px; color: var(--green);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+#last-update { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* KPI GRID */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px; margin-bottom: 24px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative; overflow: hidden;
+}
+.kpi::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.kpi.k-green::before { background: var(--green); }
+.kpi.k-red::before { background: var(--red); }
+.kpi.k-blue::before { background: var(--blue); }
+.kpi.k-amber::before { background: var(--amber); }
+.kpi.k-purple::before { background: var(--purple); }
+.kpi-label { font-size: 10px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
+.kpi-val { font-family: var(--font-head); font-size: 22px; font-weight: 700; }
+.kpi-val.pos { color: var(--green); }
+.kpi-val.neg { color: var(--red); }
+.kpi-val.amber { color: var(--amber); }
+.kpi-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* SECTION */
+.section { margin-bottom: 28px; }
+.section-title {
+  font-family: var(--font-head);
+  font-size: 11px; font-weight: 500; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .1em;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* BARS */
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.bar-label { font-size: 11px; color: var(--muted); width: 80px; flex-shrink: 0; text-align: right; }
+.bar-track {
+  flex: 1; background: var(--surface2); border-radius: 3px; height: 18px;
+  overflow: hidden; position: relative;
+}
+.bar-fill { height: 100%; border-radius: 3px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+.bar-amount { font-size: 11px; min-width: 90px; text-align: right; }
+
+/* KANBAN */
+.kanban-scroll { overflow-x: auto; padding-bottom: 8px; }
+.kanban { display: flex; gap: 10px; min-width: 650px; }
+.kcol { flex: 1; min-width: 118px; }
+.kcol-head {
+  font-size: 10px; font-weight: 500; color: var(--muted);
+  padding: 6px 10px; background: var(--surface2);
+  border-radius: 8px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 5px;
+  border: 1px solid var(--border);
+}
+.kcol-head .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.kcard {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 11px; margin-bottom: 7px;
+  min-height: 52px;
+}
+.kcard-rub { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.kcard-amt { font-family: var(--font-head); font-size: 14px; font-weight: 700; }
+.kcard-neto {
+  border-radius: 8px; padding: 8px 11px;
+  font-family: var(--font-head); font-size: 13px; font-weight: 700;
+  text-align: center; margin-top: 4px;
+}
+.kcard.empty { opacity: 0.3; }
+
+/* CHART CONTROLS */
+.chart-controls {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.chart-controls label { font-size: 11px; color: var(--muted); }
+.chart-controls input[type=date] {
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); border-radius: 6px; padding: 5px 10px; font-size: 11px;
+  font-family: var(--font-mono);
+}
+.chart-controls input[type=date]:focus { outline: none; border-color: var(--green); }
+.btn {
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--text); border-radius: 6px; padding: 5px 14px;
+  font-size: 11px; font-family: var(--font-mono); cursor: pointer;
+  transition: all .15s;
+}
+.btn:hover { border-color: var(--green); color: var(--green); }
+.chart-wrap { position: relative; width: 100%; height: 220px; }
+.chart-legend {
+  display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px;
+}
+.chart-legend span {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--muted);
+}
+.leg-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* TABLE */
+.search-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.search-row input, .search-row select {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px; padding: 6px 10px;
+  font-size: 11px; font-family: var(--font-mono);
+}
+.search-row input { flex: 1; min-width: 160px; }
+.search-row input:focus, .search-row select:focus { outline: none; border-color: var(--green); }
+.search-row select option { background: var(--surface2); }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+thead th {
+  color: var(--muted); font-weight: 500; padding: 7px 10px;
+  border-bottom: 1px solid var(--border); text-align: left;
+  text-transform: uppercase; letter-spacing: .06em; font-size: 10px;
+}
+tbody td {
+  padding: 7px 10px; border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+tbody tr:hover td { background: var(--surface2); }
+tbody tr:last-child td { border-bottom: none; }
+.tag {
+  display: inline-block; font-size: 9px; padding: 2px 7px;
+  border-radius: 20px; font-weight: 500; font-family: var(--font-mono);
+}
+.t-ing { background: rgba(45,206,137,.15); color: var(--green); }
+.t-baj { background: rgba(77,158,247,.15); color: var(--blue); }
+.t-sue { background: rgba(155,143,247,.15); color: var(--purple); }
+.t-pub { background: rgba(255,190,61,.15); color: var(--amber); }
+.t-pan { background: rgba(245,54,92,.12); color: var(--red); }
+.t-otr { background: rgba(122,127,148,.15); color: var(--muted); }
+#nodata { font-size: 12px; color: var(--muted); padding: 1rem 0; display: none; }
+
+/* FOOTER */
+.footer {
+  margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+}
+.footer span { font-size: 10px; color: var(--muted); }
+.btn-refresh { display: flex; align-items: center; gap: 6px; }
+.btn-refresh svg { transition: transform .4s; }
+.btn-refresh:hover svg { transform: rotate(180deg); }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="spinner"></div>
+  <p>Conectando con Drive...</p>
+</div>
+
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <h1>ARNET Finanzas</h1>
+      <p>Mayo 2026 → Abr 2027 · Hoja activa en Drive</p>
+      <div id="last-update"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <div class="live-badge"><div class="live-dot"></div>En vivo</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid" id="kpis"></div>
+
+  <div class="section">
+    <div class="section-title">Flujo por rubro — mayo 2026</div>
+    <div id="bars"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Kanban semanal — mayo 2026</div>
+    <div class="kanban-scroll"><div class="kanban" id="kanban"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Acumulado mensual — ingresos y ganancia</div>
+    <div class="chart-controls">
+      <label>Desde</label>
+      <input type="date" id="dateFrom" value="2026-05-01">
+      <label>Hasta</label>
+      <input type="date" id="dateTo" value="2027-04-30">
+      <button class="btn" onclick="renderChart()">Aplicar</button>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="lineChart" role="img" aria-label="Ingresos y bajadas acumulativos mensuales">Gráfico acumulativo mensual.</canvas>
+    </div>
+    <div class="chart-legend">
+      <span><span class="leg-dot" style="background:var(--green)"></span>Ingresos acumulados</span>
+      <span><span class="leg-dot" style="background:var(--blue)"></span>Bajadas / ganancia acumulada</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Detalle de movimientos</div>
+    <div class="search-row">
+      <input type="text" id="srch" placeholder="Buscar fecha, rubro, persona..." oninput="renderTable()">
+      <select id="fcat" onchange="renderTable()">
+        <option value="">Todos los rubros</option>
+        <option>Ingresos</option><option>Bajadas</option><option>Sueldos</option>
+        <option>Publicidad</option><option>Panel</option><option>otros</option>
+      </select>
+    </div>
+    <table>
+      <thead><tr><th>Fecha</th><th>Rubro</th><th>Importe</th><th>Personal</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="nodata">Sin resultados.</div>
+  </div>
+
+  <div class="footer">
+    <span id="footer-count"></span>
+    <button class="btn btn-refresh" onclick="fetchData()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      Actualizar ahora
+    </button>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbwnjZjvGoVv348RTy1E-uRd5Wx7r-6gqmic0EFbsHp_sllEpUhIaz3d4B_cqjyj7h-E2g/exec";
+const RUBROS = ['Ingresos','Bajadas','Sueldos','Publicidad','Panel','otros'];
+const TAGCLS = {Ingresos:'t-ing',Bajadas:'t-baj',Sueldos:'t-sue',Publicidad:'t-pub',Panel:'t-pan',otros:'t-otr'};
+const BARCOL = {Ingresos:'var(--green)',Bajadas:'var(--blue)',Sueldos:'var(--purple)',Publicidad:'var(--amber)',Panel:'var(--red)',otros:'#5a5f72'};
+const DOTCOL = {Ingresos:'#2dce89',Bajadas:'#4d9ef7',Sueldos:'#9b8ff7',Publicidad:'#ffbe3d',Panel:'#f5365c',otros:'#5a5f72'};
+
+let ALL = [];
+let lineChart = null;
+
+function fmt(n) {
+  const a = Math.abs(n);
+  if (a >= 1000000) return (n < 0 ? '-' : '') + '$' + (a / 1000000).toFixed(2) + 'M';
+  return (n < 0 ? '-' : '') + '$' + (a / 1000).toFixed(0) + 'K';
+}
+function fmtFull(n) { return (n < 0 ? '-' : '') + '$' + Math.abs(n).toLocaleString('es-AR'); }
+function sumCat(rows, cat) { return rows.filter(r => r.cat === cat).reduce((s, r) => s + r.amt, 0); }
+
+function parseDate(s) {
+  if (!s) return null;
+  const [dd, mm, yy] = s.split('/');
+  return new Date(2000 + parseInt(yy), parseInt(mm) - 1, parseInt(dd));
+}
+
+async function fetchData() {
+  try {
+    document.getElementById('loader').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+
+    const res = await fetch(API);
+    const json = await res.json();
+
+    if (json.error) throw new Error(json.error);
+
+    ALL = json.rows.filter(r => r.amt !== 0 && r.amt !== null);
+
+    const now = new Date(json.updated);
+    document.getElementById('last-update').textContent =
+      'Última actualización: ' + now.toLocaleString('es-AR');
+
+    render();
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+  } catch (e) {
+    document.getElementById('loader').innerHTML =
+      `<div style="color:var(--red);font-size:13px;text-align:center;max-width:320px">
+        <p style="font-size:18px;margin-bottom:8px">⚠</p>
+        <p>No se pudo conectar con Drive.</p>
+        <p style="color:var(--muted);font-size:11px;margin-top:6px">${e.message}</p>
+        <button class="btn" style="margin-top:14px" onclick="fetchData()">Reintentar</button>
+      </div>`;
+  }
+}
+
+function render() {
+  const mayRows = ALL.filter(r => r.y === 2026 && r.m === 5);
+  renderKPIs(mayRows);
+  renderBars(mayRows);
+  renderKanban(mayRows);
+  renderChart();
+  renderTable();
+  document.getElementById('footer-count').textContent =
+    ALL.length + ' movimientos cargados en total';
+}
+
+function renderKPIs(rows) {
+  const ing = sumCat(rows, 'Ingresos');
+  const baj = Math.abs(sumCat(rows, 'Bajadas'));
+  const sue = sumCat(rows, 'Sueldos');
+  const pub = sumCat(rows, 'Publicidad');
+  const pan = sumCat(rows, 'Panel');
+  const otr = sumCat(rows, 'otros');
+  const gastoOp = sue + pub + pan + otr;
+  const resultado = ing + baj + gastoOp;
+  const margen = ing > 0 ? ((baj / ing) * 100) : 0;
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi k-green">
+      <div class="kpi-label">Ingresos mayo</div>
+      <div class="kpi-val pos">${fmt(ing)}</div>
+      <div class="kpi-sub">bruto del mes</div>
+    </div>
+    <div class="kpi k-blue">
+      <div class="kpi-label">Bajadas · ganancia</div>
+      <div class="kpi-val" style="color:var(--blue)">${fmt(baj)}</div>
+      <div class="kpi-sub">${margen.toFixed(1)}% sobre ingresos</div>
+    </div>
+    <div class="kpi k-purple">
+      <div class="kpi-label">Sueldos</div>
+      <div class="kpi-val neg">${fmt(sue)}</div>
+      <div class="kpi-sub">personal</div>
+    </div>
+    <div class="kpi k-amber">
+      <div class="kpi-label">Publicidad</div>
+      <div class="kpi-val" style="color:var(--amber)">${fmt(pub)}</div>
+      <div class="kpi-sub">marketing</div>
+    </div>
+    <div class="kpi k-red">
+      <div class="kpi-label">Panel</div>
+      <div class="kpi-val neg">${fmt(pan)}</div>
+      <div class="kpi-sub">infraestructura</div>
+    </div>
+    <div class="kpi ${resultado >= 0 ? 'k-green' : 'k-red'}">
+      <div class="kpi-label">Resultado neto</div>
+      <div class="kpi-val ${resultado >= 0 ? 'pos' : 'neg'}">${fmt(resultado)}</div>
+      <div class="kpi-sub">ing + gcia − gastos op.</div>
+    </div>
+  `;
+}
+
+function renderBars(rows) {
+  const vals = RUBROS.map(c => ({ cat: c, val: sumCat(rows, c) })).filter(v => v.val !== 0);
+  const maxA = Math.max(...vals.map(v => Math.abs(v.val)));
+  document.getElementById('bars').innerHTML = vals.map(({ cat, val }) => {
+    const disp = cat === 'Bajadas' ? Math.abs(val) : val;
+    const col = disp >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<div class="bar-row">
+      <span class="bar-label">${cat}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${((Math.abs(val) / maxA) * 100).toFixed(1)}%;background:${BARCOL[cat]}"></div>
+      </div>
+      <span class="bar-amount" style="color:${cat==='Bajadas'?'var(--blue)':disp>=0?'var(--green)':'var(--red)'}">
+        ${fmtFull(disp)}
+      </span>
+    </div>`;
+  }).join('');
+}
+
+function renderKanban(rows) {
+  const weeks = [
+    { lbl: 'Sem 1 · 1–7', days: ['01/05/26','02/05/26','03/05/26','04/05/26','05/05/26','06/05/26','07/05/26'] },
+    { lbl: 'Sem 2 · 8–14', days: ['08/05/26','09/05/26','10/05/26','11/05/26','12/05/26','13/05/26','14/05/26'] },
+    { lbl: 'Sem 3 · 15–21', days: ['15/05/26','16/05/26','17/05/26','18/05/26','19/05/26','20/05/26','21/05/26'] },
+    { lbl: 'Sem 4 · 22–28', days: ['22/05/26','23/05/26','24/05/26','25/05/26','26/05/26','27/05/26','28/05/26'] },
+    { lbl: 'Sem 5 · 29–31', days: ['29/05/26','30/05/26','31/05/26'] },
+  ];
+
+  document.getElementById('kanban').innerHTML = weeks.map(w => {
+    const wr = rows.filter(r => w.days.includes(r.fecha));
+    const wv = {};
+    RUBROS.forEach(c => wv[c] = sumCat(wr, c));
+    const ing = wv['Ingresos'];
+    const baj = Math.abs(wv['Bajadas']);
+    const gastoOp = RUBROS.filter(c => c !== 'Ingresos' && c !== 'Bajadas').reduce((s, c) => s + wv[c], 0);
+    const neto = ing + baj + gastoOp;
+
+    return `<div class="kcol">
+      <div class="kcol-head">
+        <span class="dot" style="background:${neto >= 0 ? '#2dce89' : '#f5365c'}"></span>
+        <span>${w.lbl}</span>
+      </div>
+      ${RUBROS.map(cat => {
+        const v = wv[cat];
+        const isBaj = cat === 'Bajadas';
+        const disp = isBaj ? Math.abs(v) : v;
+        const col = isBaj ? 'var(--blue)' : v >= 0 ? 'var(--green)' : 'var(--red)';
+        if (!v) return `<div class="kcard empty"><div class="kcard-rub">${cat}</div><div class="kcard-amt" style="color:var(--muted)">—</div></div>`;
+        return `<div class="kcard">
+          <div class="kcard-rub">${cat}${isBaj ? ' · ✓' : ''}</div>
+          <div class="kcard-amt" style="color:${col}">${fmt(disp)}</div>
+        </div>`;
+      }).join('')}
+      <div class="kcard-neto" style="background:${neto >= 0 ? 'rgba(45,206,137,.1)' : 'rgba(245,54,92,.1)'};border:1px solid ${neto >= 0 ? 'rgba(45,206,137,.25)' : 'rgba(245,54,92,.25)'};color:${neto >= 0 ? 'var(--green)' : 'var(--red)'}">
+        ${fmt(neto)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderChart() {
+  const from = new Date(document.getElementById('dateFrom').value);
+  const to = new Date(document.getElementById('dateTo').value);
+  to.setHours(23, 59, 59);
+
+  const filtered = ALL.filter(r => {
+    const dt = parseDate(r.fecha);
+    return dt && dt >= from && dt <= to;
+  });
+
+  const mkeys = [...new Set(filtered.map(r => {
+    const y = r.y; const m = String(r.m).padStart(2, '0');
+    return `${y}-${m}`;
+  }))].sort();
+
+  let cumIng = 0, cumBaj = 0;
+  const ingA = [], bajA = [];
+  mkeys.forEach(mk => {
+    const [y, m] = mk.split('-').map(Number);
+    const mr = filtered.filter(r => r.y === y && r.m === m);
+    cumIng += sumCat(mr, 'Ingresos');
+    cumBaj += Math.abs(sumCat(mr, 'Bajadas'));
+    ingA.push(Math.round(cumIng / 1000));
+    bajA.push(Math.round(cumBaj / 1000));
+  });
+
+  const mNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const labels = mkeys.map(k => { const [y,m] = k.split('-'); return mNames[parseInt(m)-1]+' '+y.slice(2); });
+
+  if (lineChart) lineChart.destroy();
+  lineChart = new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Ingresos acum.',
+          data: ingA,
+          borderColor: '#2dce89', backgroundColor: 'rgba(45,206,137,.08)',
+          fill: true, tension: .35, pointRadius: 4, pointBackgroundColor: '#2dce89',
+          borderWidth: 2, borderDash: [],
+        },
+        {
+          label: 'Bajadas acum.',
+          data: bajA,
+          borderColor: '#4d9ef7', backgroundColor: 'rgba(77,158,247,.06)',
+          fill: true, tension: .35, pointRadius: 4, pointBackgroundColor: '#4d9ef7',
+          borderWidth: 2, borderDash: [5, 4],
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString('es-AR') + 'K' } }
+      },
+      scales: {
+        x: { ticks: { color: '#7a7f94', font: { size: 10, family: 'DM Mono' }, autoSkip: false, maxRotation: 45 }, grid: { display: false }, border: { color: 'rgba(255,255,255,.07)' } },
+        y: { ticks: { color: '#7a7f94', font: { size: 10, family: 'DM Mono' }, callback: v => '$' + v + 'K' }, grid: { color: 'rgba(255,255,255,.05)' }, border: { display: false } }
+      }
+    }
+  });
+}
+
+function renderTable() {
+  const q = (document.getElementById('srch').value || '').toLowerCase();
+  const cat = document.getElementById('fcat').value;
+  const rows = ALL.filter(r => {
+    const mc = !cat || r.cat === cat;
+    const mq = !q || r.fecha.includes(q) || r.cat.toLowerCase().includes(q) || (r.p && r.p.toLowerCase().includes(q));
+    return mc && mq;
+  });
+  document.getElementById('nodata').style.display = rows.length ? 'none' : 'block';
+  document.getElementById('tbody').innerHTML = rows.map(r => {
+    const isBaj = r.cat === 'Bajadas';
+    const disp = isBaj ? Math.abs(r.amt) : r.amt;
+    const col = isBaj ? 'var(--blue)' : disp >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<tr>
+      <td style="white-space:nowrap">${r.fecha.replace('/26','/2026')}</td>
+      <td><span class="tag ${TAGCLS[r.cat]}">${r.cat}${isBaj?' ✓':''}</span></td>
+      <td style="color:${col};font-weight:500">${fmtFull(disp)}</td>
+      <td style="color:var(--muted)">${r.p || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Carga inicial + auto-refresh cada 30 segundos
+fetchData();
+setInterval(fetchData, 30000);
+</script>
+</body>
+</html>
