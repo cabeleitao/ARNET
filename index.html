@@ -276,8 +276,11 @@ function getActiveMes(){
 
 function populateMesSelect(){
   const sel = document.getElementById('mesSelect');
-  const meses = [...new Set(ALL.filter(r=>r.cat==='Ingresos'&&r.amt>0).map(r=>r.y+'-'+String(r.m).padStart(2,'0')))].sort().reverse();
-  const act = getLatestMes();
+  // Get all unique year-month combos from ALL data
+  const mesSet = new Set();
+  ALL.forEach(r => mesSet.add(r.y+'-'+String(r.m).padStart(2,'0')));
+  const meses = [...mesSet].sort().reverse();
+  const act = SELECTED_MES || getLatestMes();
   const actKey = act.y+'-'+String(act.m).padStart(2,'0');
   sel.innerHTML = meses.map(k=>{
     const [y,m]=k.split('-');
