@@ -111,6 +111,10 @@ tbody tr:last-child td{border-bottom:none}
   <div class="kpi-grid" id="kpis"></div>
 
   <hr class="div">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+    <span style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em">Mes activo</span>
+    <select id="mesSelect" onchange="changeMes()" style="background:var(--s2);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:4px 10px;font-size:11px;font-family:var(--fm)"></select>
+  </div>
   <p class="sec">Flujo por rubro — <span id="sec-mes-bars"></span></p>
   <div id="bars"></div>
 
@@ -258,10 +262,42 @@ async function fetchData(){
   }
 }
 
-function getActiveMes(){
+let SELECTED_MES = null; // {y,m} or null = auto
+
+function getLatestMes(){
   const withIng=ALL.filter(r=>r.cat==='Ingresos'&&r.amt>0);
   if(!withIng.length)return{y:2026,m:5};
   return withIng.reduce((b,r)=>r.y>b.y||(r.y===b.y&&r.m>b.m)?{y:r.y,m:r.m}:b,{y:2000,m:1});
+}
+
+function getActiveMes(){
+  return SELECTED_MES || getLatestMes();
+}
+
+function populateMesSelect(){
+  const sel = document.getElementById('mesSelect');
+  const meses = [...new Set(ALL.filter(r=>r.cat==='Ingresos'&&r.amt>0).map(r=>r.y+'-'+String(r.m).padStart(2,'0')))].sort().reverse();
+  const act = getLatestMes();
+  const actKey = act.y+'-'+String(act.m).padStart(2,'0');
+  sel.innerHTML = meses.map(k=>{
+    const [y,m]=k.split('-');
+    return `<option value="${k}" ${k===actKey?'selected':''}>${MNAMES[parseInt(m)-1]} ${y}</option>`;
+  }).join('');
+}
+
+function changeMes(){
+  const val = document.getElementById('mesSelect').value;
+  const [y,m] = val.split('-').map(Number);
+  SELECTED_MES = {y,m};
+  const act = {y,m};
+  const prev = getPrevMes(act);
+  const label = MNAMES[act.m-1]+' '+act.y;
+  document.getElementById('sec-mes-bars').textContent=label;
+  document.getElementById('sec-mes-kan').textContent=label;
+  populateMesSelect();
+  renderKPIs(act,prev);
+  renderBars(getMesRows(act.y,act.m));
+  renderKanban(getMesRows(act.y,act.m),act);
 }
 
 function getPrevMes(a){return a.m===1?{y:a.y-1,m:12}:{y:a.y,m:a.m-1};}
@@ -335,18 +371,24 @@ function buildWeeks(y,m){
 function renderKanban(rows,act){
   const weeks=buildWeeks(act.y,act.m);
   document.getElementById('kanban').innerHTML=weeks.map(w=>{
-    const wr=rows.filter(r=>w.days.some(d=>{
-      const[dd,mm,yy]=d.split('/');
-      return r.d&&r.d.startsWith&&r.d.startsWith(dd+'/'+mm);
-    }));
-    // For monthly summary data (HIST), distribute evenly or show total
     const wv={};
     RUBROS.forEach(c=>wv[c]=0);
-    // If no daily data, show monthly total in first week
-    if(wr.length===0&&w.lbl.startsWith('1')){
-      RUBROS.forEach(c=>wv[c]=sumCat(rows,c));
-    } else {
+    // Check if rows have daily dates (d field like "01/06/26") or are monthly summaries
+    const hasDailyData = rows.some(r=>r.d && /^\d{2}\/\d{2}\/\d{2}$/.test(r.d));
+    if(hasDailyData){
+      // Match daily rows to this week's days
+      const wr=rows.filter(r=>{
+        if(!r.d) return false;
+        const dayNum = parseInt(r.d.split('/')[0]);
+        const[s,e]=w.lbl.split('–').map(Number);
+        return dayNum>=s && dayNum<=e;
+      });
       wr.forEach(r=>{if(wv[r.cat]!==undefined)wv[r.cat]+=r.amt;});
+    } else {
+      // Monthly summary — show total only in week 1
+      if(w.lbl.startsWith('1')){
+        RUBROS.forEach(c=>wv[c]=sumCat(rows,c));
+      }
     }
     const ing=wv['Ingresos'],baj=Math.abs(wv['Bajadas']);
     const gastoOp=RUBROS.filter(c=>c!=='Ingresos'&&c!=='Bajadas').reduce((s,c)=>s+wv[c],0);
