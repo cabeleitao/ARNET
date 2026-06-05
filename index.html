@@ -210,11 +210,11 @@ function prevMes(y,m){ return m===1?{y:y-1,m:12}:{y:y,m:m-1}; }
 
 // ── MERGE ──
 function mergeData(){
-  // Remove hist entries for months covered by LIVE
   var liveMeses = {};
   LIVE.forEach(function(r){ liveMeses[r.y+'_'+r.m]=true; });
   var base = HIST.filter(function(r){ return !liveMeses[r.y+'_'+r.m]; });
   ALL = base.concat(LIVE).sort(function(a,b){ return a.y!==b.y?a.y-b.y:a.m-b.m; });
+  console.log('ALL months:', [...new Set(ALL.map(function(r){return r.y+'/'+r.m;}))].join(', '));
 }
 
 // ── FETCH ──
@@ -238,6 +238,7 @@ async function fetchData(){
     LIVE = Object.keys(map).map(function(k){return map[k];});
 
     mergeData();
+    fillSelect(getActive());
     var d = new Date(json.updated);
     document.getElementById('sync').textContent = 'Última sync: '+d.toLocaleString('es-AR');
     render();
@@ -272,19 +273,22 @@ function render(){
 
 function fillSelect(act){
   var sel = document.getElementById('selMes');
-  var meses = [];
   var seen = {};
-  ALL.forEach(function(r){
+  var meses = [];
+  // Use ALL if populated, otherwise fall back to HIST
+  var source = ALL.length > 0 ? ALL : HIST;
+  source.forEach(function(r){
     var k = r.y+'-'+(r.m<10?'0':'')+r.m;
     if(!seen[k]){seen[k]=true;meses.push({k:k,y:r.y,m:r.m});}
   });
-  meses.sort(function(a,b){return b.y!==a.y?b.y-a.y:b.m-a.m;});
+  meses.sort(function(a,b){ return b.y!==a.y ? b.y-a.y : b.m-a.m; });
   var actKey = act.y+'-'+(act.m<10?'0':'')+act.m;
   var html='';
   meses.forEach(function(x){
-    html+='<option value="'+x.k+'"'+(x.k===actKey?' selected':'')+'>'+MNAMES[x.m-1]+' '+x.y+'</option>';
+    html += '<option value="'+x.k+'"'+(x.k===actKey?' selected':'')+'>'+MNAMES[x.m-1]+' '+x.y+'</option>';
   });
   sel.innerHTML = html;
+  console.log('fillSelect: '+meses.length+' meses, activo='+actKey);
 }
 
 function onMesChange(){
