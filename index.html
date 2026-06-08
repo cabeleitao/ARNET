@@ -2,521 +2,2564 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ARNET Finanzas</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0f14;color:#e8eaf0;font-family:'DM Mono',monospace;padding:20px;min-height:100vh}
-#loader{position:fixed;inset:0;background:#0d0f14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999}
-.spin{width:34px;height:34px;border:2px solid rgba(255,255,255,.1);border-top-color:#2dce89;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-#app{display:none}
-h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
-.sub{font-size:11px;color:#7a7f94;margin-top:3px}
-.topbar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:22px}
-.badge{display:flex;align-items:center;gap:6px;background:rgba(45,206,137,.12);border:1px solid rgba(45,206,137,.2);border-radius:20px;padding:4px 12px;font-size:10px;color:#2dce89}
-.dot{width:6px;height:6px;border-radius:50%;background:#2dce89;animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.divider{border:none;border-top:1px solid rgba(255,255,255,.07);margin:18px 0}
-.sec{font-family:'Syne',sans-serif;font-size:10px;font-weight:500;color:#7a7f94;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+body{background:#0d0f14;color:#e8eaf0;font-family:'DM Mono',monospace;padding:18px;min-height:100vh}
+h1{font-family:'Syne',sans-serif;font-size:19px;font-weight:700}
+.sub{font-size:11px;color:#7a7f94;margin-top:2px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.badge{display:flex;align-items:center;gap:6px;background:rgba(45,206,137,.12);border:1px solid rgba(45,206,137,.2);border-radius:20px;padding:4px 11px;font-size:10px;color:#2dce89}
+.pulse{width:6px;height:6px;border-radius:50%;background:#2dce89;animation:p 2s ease infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:7px;margin-bottom:18px}
+.kpi{background:#141720;border-radius:8px;padding:10px 12px;border-top:2px solid transparent}
+.klbl{font-size:9px;color:#7a7f94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.kval{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.kval.g{color:#2dce89}.kval.r{color:#f5365c}.kval.b{color:#4d9ef7}
+.ksub{font-size:9px;color:#7a7f94;margin-top:2px}
+.tr{font-size:9px;padding:1px 5px;border-radius:8px;margin-left:3px}
+.tru{background:rgba(45,206,137,.15);color:#2dce89}.trd{background:rgba(245,54,92,.12);color:#f5365c}
+.div{border:none;border-top:1px solid rgba(255,255,255,.07);margin:14px 0}
+.sec{font-size:10px;font-weight:500;color:#7a7f94;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .sec::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
-/* KPIs */
-.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:20px}
-.kpi{background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.kg::before{background:#2dce89}.kb::before{background:#4d9ef7}.ks::before{background:#9b8ff7}
-.ka::before{background:#ffbe3d}.kr::before{background:#f5365c}
-.klbl{font-size:10px;color:#7a7f94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.kval{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
-.kval.pos{color:#2dce89}.kval.neg{color:#f5365c}.kval.bl{color:#4d9ef7}
-.ksub{font-size:10px;color:#7a7f94;margin-top:3px}
-.trend{font-size:9px;padding:2px 5px;border-radius:8px;margin-left:4px;font-weight:500}
-.tup{background:rgba(45,206,137,.15);color:#2dce89}
-.tdn{background:rgba(245,54,92,.12);color:#f5365c}
-/* MES SELECTOR */
-.mes-ctrl{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.mes-ctrl label{font-size:10px;color:#7a7f94;text-transform:uppercase;letter-spacing:.06em}
-select,input[type=date]{background:#1c2030;border:1px solid rgba(255,255,255,.13);color:#e8eaf0;border-radius:6px;padding:5px 10px;font-size:11px;font-family:'DM Mono',monospace}
-select:focus,input:focus{outline:none;border-color:#2dce89}
-select option{background:#1c2030}
-.btn{background:transparent;border:1px solid rgba(255,255,255,.13);color:#e8eaf0;border-radius:6px;padding:5px 12px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer}
-.btn:hover{border-color:#2dce89;color:#2dce89}
-/* BARS */
-.brow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.blbl{font-size:10px;color:#7a7f94;width:72px;text-align:right;flex-shrink:0}
-.btrack{flex:1;background:#1c2030;border-radius:3px;height:15px;overflow:hidden}
+.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.ctrl label{font-size:10px;color:#7a7f94}
+select{background:#1c2030;border:1px solid rgba(255,255,255,.13);color:#e8eaf0;border-radius:6px;padding:4px 8px;font-size:11px;font-family:'DM Mono',monospace}
+.brow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.blbl{font-size:10px;color:#7a7f94;width:68px;text-align:right;flex-shrink:0}
+.btrack{flex:1;background:#1c2030;border-radius:3px;height:13px;overflow:hidden}
 .bfill{height:100%;border-radius:3px}
-.bamt{font-size:10px;min-width:90px;text-align:right}
-/* KANBAN */
-.kscroll{overflow-x:auto;padding-bottom:6px}
-.kanban{display:flex;gap:8px;min-width:580px}
-.kcol{flex:1;min-width:105px}
-.khead{font-size:10px;padding:5px 8px;background:#1c2030;border:1px solid rgba(255,255,255,.07);border-radius:7px;margin-bottom:7px;display:flex;align-items:center;gap:5px;color:#7a7f94}
-.kdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.kcard{background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:8px 10px;margin-bottom:6px;min-height:46px}
-.kcard.empty{opacity:.2}
-.krub{font-size:9px;color:#7a7f94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
-.kamt{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
-.kneto{border-radius:7px;padding:7px 10px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;text-align:center;margin-top:4px}
-/* CHART */
-.cctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.cctrls label{font-size:10px;color:#7a7f94}
-.cw{position:relative;width:100%;height:210px}
-.leg{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
-.leg span{display:flex;align-items:center;gap:5px;font-size:10px;color:#7a7f94}
-.ld{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-/* TABLE */
-.tctrl{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
-.tctrl input{flex:1;min-width:140px}
-table{width:100%;border-collapse:collapse;font-size:10px}
-th{color:#7a7f94;font-weight:500;padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;text-transform:uppercase;letter-spacing:.06em}
-td{padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.07)}
-tr:hover td{background:#1c2030}
-tr:last-child td{border-bottom:none}
-.tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:20px;font-weight:500}
-.ti{background:rgba(45,206,137,.15);color:#2dce89}
-.tb{background:rgba(77,158,247,.15);color:#4d9ef7}
-.ts{background:rgba(155,143,247,.15);color:#9b8ff7}
-.tp{background:rgba(255,190,61,.15);color:#ffbe3d}
-.tpa{background:rgba(245,54,92,.12);color:#f5365c}
-.to{background:rgba(122,127,148,.15);color:#7a7f94}
-.footer{margin-top:24px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.footer span{font-size:10px;color:#7a7f94}
+.bamt{font-size:10px;min-width:82px;text-align:right}
+.kscroll{overflow-x:auto;padding-bottom:4px}
+.kanban{display:flex;gap:7px;min-width:520px}
+.kcol{flex:1;min-width:95px}
+.khead{font-size:10px;padding:4px 7px;background:#1c2030;border:1px solid rgba(255,255,255,.07);border-radius:6px;margin-bottom:5px;display:flex;align-items:center;gap:4px;color:#7a7f94}
+.kdot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.kcard{background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:6px 8px;margin-bottom:5px}
+.kcard.em{opacity:.2}
+.krub{font-size:9px;color:#7a7f94;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.kamt{font-family:'Syne',sans-serif;font-size:12px;font-weight:700}
+.kneto{border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;text-align:center;margin-top:3px}
+.footer{margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);font-size:10px;color:#7a7f94}
 </style>
 </head>
 <body>
-<div id="loader"><div class="spin"></div><p style="font-size:11px;color:#7a7f94;letter-spacing:.08em">Conectando con Drive...</p></div>
-<div id="app">
-
 <div class="topbar">
-  <div>
-    <h1>ARNET Finanzas</h1>
-    <p class="sub">May 2024 → Abr 2027 · Hoja activa en Drive</p>
-    <p class="sub" id="sync"></p>
-  </div>
-  <div class="badge"><div class="dot"></div>En vivo · 30s</div>
+  <div><h1>ARNET Finanzas</h1><div class="sub" id="sub">May 2024 → Jun 2026 · datos diarios reales</div></div>
+  <div class="badge"><div class="pulse"></div>2384 registros</div>
 </div>
 
 <div class="kgrid" id="kpis"></div>
 
-<hr class="divider">
-<div class="mes-ctrl">
+<hr class="div">
+<div class="ctrl">
   <label>Mes activo</label>
-  <select id="selMes" onchange="onMesChange()"></select>
+  <select id="selMes" onchange="changeMes()"></select>
 </div>
-<p class="sec">Flujo por rubro — <span id="tit-bars"></span></p>
+<div class="sec">Flujo por rubro — <span id="titBars" style="color:#e8eaf0;margin-left:4px"></span></div>
 <div id="bars"></div>
 
-<hr class="divider">
-<p class="sec">Kanban semanal — <span id="tit-kan"></span></p>
+<hr class="div">
+<div class="sec">Kanban semanal — <span id="titKan" style="color:#e8eaf0;margin-left:4px"></span></div>
 <div class="kscroll"><div class="kanban" id="kanban"></div></div>
 
-<hr class="divider">
-<p class="sec">Evolución histórica mensual</p>
-<div class="cctrls">
-  <label>Vista</label>
-  <select id="cMode"><option value="mes">Por mes</option><option value="acum">Acumulado</option></select>
-  <label>Rubro</label>
-  <select id="cRubro">
-    <option value="IB">Ingresos + Bajadas</option>
-    <option value="I">Solo Ingresos</option>
-    <option value="B">Solo Bajadas</option>
-    <option value="N">Resultado neto</option>
-  </select>
-  <label>Desde</label><input type="date" id="dFrom" value="2024-05-01">
-  <label>Hasta</label><input type="date" id="dTo" value="2027-04-30">
-  <button class="btn" onclick="renderChart()">Aplicar</button>
-</div>
-<div class="cw"><canvas id="chart"></canvas></div>
-<div class="leg" id="leg"></div>
-
-<hr class="divider">
-<p class="sec">Movimientos</p>
-<div class="tctrl">
-  <input type="text" id="tSrch" placeholder="Buscar..." oninput="renderTable()">
-  <select id="tCat" onchange="renderTable()">
-    <option value="">Todos</option>
-    <option>Ingresos</option><option>Bajadas</option><option>Sueldos</option>
-    <option>Publicidad</option><option>Panel</option><option>otros</option>
-  </select>
-  <select id="tAno" onchange="renderTable()">
-    <option value="">Todos los años</option>
-    <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
-  </select>
-</div>
-<table><thead><tr><th>Mes</th><th>Rubro</th><th>Importe</th></tr></thead><tbody id="tbody"></tbody></table>
-
-<div class="footer">
-  <span id="fcnt"></span>
-  <button class="btn" onclick="fetchData()">↻ Actualizar</button>
-</div>
-</div>
-
-<script>
-const API = "https://script.google.com/macros/s/AKfycbwnjZjvGoVv348RTy1E-uRd5Wx7r-6gqmic0EFbsHp_sllEpUhIaz3d4B_cqjyj7h-E2g/exec";
-const MNAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const MSHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-const RUBROS = ['Ingresos','Bajadas','Sueldos','Publicidad','Panel','otros'];
-const BARCOL = {Ingresos:'#2dce89',Bajadas:'#4d9ef7',Sueldos:'#9b8ff7',Publicidad:'#ffbe3d',Panel:'#f5365c',otros:'#5a5f72'};
-const TAGCLS = {Ingresos:'ti',Bajadas:'tb',Sueldos:'ts',Publicidad:'tp',Panel:'tpa',otros:'to'};
-
-// ── DATOS HISTÓRICOS (May 2024 – Abr 2026) ──
-const HIST = [
-  {y:2024,m:5,cat:'Ingresos',amt:12574356},{y:2024,m:5,cat:'Bajadas',amt:-2566800},{y:2024,m:5,cat:'Sueldos',amt:-3252288},{y:2024,m:5,cat:'Publicidad',amt:-2566100},{y:2024,m:5,cat:'Panel',amt:-2360000},
-  {y:2024,m:6,cat:'Ingresos',amt:13401500},{y:2024,m:6,cat:'Bajadas',amt:-600000},{y:2024,m:6,cat:'Sueldos',amt:-2202502},{y:2024,m:6,cat:'Publicidad',amt:-5819790},{y:2024,m:6,cat:'Panel',amt:-4320000},
-  {y:2024,m:7,cat:'Ingresos',amt:10100000},{y:2024,m:7,cat:'Bajadas',amt:-2397185},{y:2024,m:7,cat:'Sueldos',amt:-2382386},{y:2024,m:7,cat:'Publicidad',amt:-3000000},{y:2024,m:7,cat:'Panel',amt:-3420000},
-  {y:2024,m:8,cat:'Ingresos',amt:9390000},{y:2024,m:8,cat:'Bajadas',amt:-1843541},{y:2024,m:8,cat:'Sueldos',amt:-1667640},{y:2024,m:8,cat:'Publicidad',amt:-3000000},{y:2024,m:8,cat:'Panel',amt:-3250000},{y:2024,m:8,cat:'otros',amt:-207807},
-  {y:2024,m:9,cat:'Ingresos',amt:10428671},{y:2024,m:9,cat:'Bajadas',amt:-100000},{y:2024,m:9,cat:'Sueldos',amt:-3125000},{y:2024,m:9,cat:'Publicidad',amt:-2973671},{y:2024,m:9,cat:'Panel',amt:-3820000},{y:2024,m:9,cat:'otros',amt:-410000},
-  {y:2024,m:10,cat:'Ingresos',amt:14917198},{y:2024,m:10,cat:'Bajadas',amt:-2970000},{y:2024,m:10,cat:'Sueldos',amt:-2087000},{y:2024,m:10,cat:'Publicidad',amt:-5050198},{y:2024,m:10,cat:'Panel',amt:-4670000},{y:2024,m:10,cat:'otros',amt:-140000},
-  {y:2024,m:11,cat:'Ingresos',amt:18943879},{y:2024,m:11,cat:'Bajadas',amt:-3122000},{y:2024,m:11,cat:'Sueldos',amt:-2620085},{y:2024,m:11,cat:'Publicidad',amt:-5448248},{y:2024,m:11,cat:'Panel',amt:-5950000},{y:2024,m:11,cat:'otros',amt:-1803546},
-  {y:2024,m:12,cat:'Ingresos',amt:32801220},{y:2024,m:12,cat:'Bajadas',amt:-9685400},{y:2024,m:12,cat:'Sueldos',amt:-3581885},{y:2024,m:12,cat:'Publicidad',amt:-8624063},{y:2024,m:12,cat:'Panel',amt:-9650000},{y:2024,m:12,cat:'otros',amt:-1259872},
-  {y:2025,m:1,cat:'Ingresos',amt:23433023},{y:2025,m:1,cat:'Bajadas',amt:-7500000},{y:2025,m:1,cat:'Sueldos',amt:-1029500},{y:2025,m:1,cat:'Publicidad',amt:-7526495},{y:2025,m:1,cat:'Panel',amt:-7000000},{y:2025,m:1,cat:'otros',amt:-377028},
-  {y:2025,m:2,cat:'Ingresos',amt:20990529},{y:2025,m:2,cat:'Bajadas',amt:-8100000},{y:2025,m:2,cat:'Publicidad',amt:-6337771},{y:2025,m:2,cat:'Panel',amt:-6500000},{y:2025,m:2,cat:'otros',amt:-52758},
-  {y:2025,m:3,cat:'Ingresos',amt:21544910},{y:2025,m:3,cat:'Bajadas',amt:-8900000},{y:2025,m:3,cat:'Sueldos',amt:-500000},{y:2025,m:3,cat:'Publicidad',amt:-5446471},{y:2025,m:3,cat:'Panel',amt:-6500000},{y:2025,m:3,cat:'otros',amt:-198439},
-  {y:2025,m:4,cat:'Ingresos',amt:14235716},{y:2025,m:4,cat:'Bajadas',amt:-7100000},{y:2025,m:4,cat:'Sueldos',amt:-500000},{y:2025,m:4,cat:'Publicidad',amt:-2080489},{y:2025,m:4,cat:'Panel',amt:-4500000},{y:2025,m:4,cat:'otros',amt:-55227},
-  {y:2025,m:5,cat:'Ingresos',amt:17823628},{y:2025,m:5,cat:'Bajadas',amt:-5625000},{y:2025,m:5,cat:'Sueldos',amt:-3175000},{y:2025,m:5,cat:'Publicidad',amt:-3178530},{y:2025,m:5,cat:'Panel',amt:-5500000},{y:2025,m:5,cat:'otros',amt:-345098},
-  {y:2025,m:6,cat:'Ingresos',amt:16389913},{y:2025,m:6,cat:'Bajadas',amt:-2516400},{y:2025,m:6,cat:'Sueldos',amt:-3326000},{y:2025,m:6,cat:'Publicidad',amt:-4757600},{y:2025,m:6,cat:'Panel',amt:-5400000},{y:2025,m:6,cat:'otros',amt:-389913},
-  {y:2025,m:7,cat:'Ingresos',amt:16680000},{y:2025,m:7,cat:'Bajadas',amt:-5333000},{y:2025,m:7,cat:'Sueldos',amt:-2967000},{y:2025,m:7,cat:'Publicidad',amt:-3130000},{y:2025,m:7,cat:'Panel',amt:-4900000},{y:2025,m:7,cat:'otros',amt:-350000},
-  {y:2025,m:8,cat:'Ingresos',amt:17533078},{y:2025,m:8,cat:'Bajadas',amt:-6340000},{y:2025,m:8,cat:'Sueldos',amt:-4160000},{y:2025,m:8,cat:'Publicidad',amt:-1400000},{y:2025,m:8,cat:'Panel',amt:-5300000},{y:2025,m:8,cat:'otros',amt:-333078},
-  {y:2025,m:9,cat:'Ingresos',amt:16750000},{y:2025,m:9,cat:'Bajadas',amt:-6010000},{y:2025,m:9,cat:'Sueldos',amt:-2490000},{y:2025,m:9,cat:'Publicidad',amt:-2000000},{y:2025,m:9,cat:'Panel',amt:-5700000},{y:2025,m:9,cat:'otros',amt:-550000},
-  {y:2025,m:10,cat:'Ingresos',amt:20315070},{y:2025,m:10,cat:'Bajadas',amt:-7172000},{y:2025,m:10,cat:'Sueldos',amt:-4028000},{y:2025,m:10,cat:'Publicidad',amt:-1600000},{y:2025,m:10,cat:'Panel',amt:-6900000},{y:2025,m:10,cat:'otros',amt:-615070},
-  {y:2025,m:11,cat:'Ingresos',amt:19214000},{y:2025,m:11,cat:'Bajadas',amt:-6031000},{y:2025,m:11,cat:'Sueldos',amt:-4569000},{y:2025,m:11,cat:'Publicidad',amt:-1700000},{y:2025,m:11,cat:'Panel',amt:-6300000},{y:2025,m:11,cat:'otros',amt:-614000},
-  {y:2025,m:12,cat:'Ingresos',amt:18998000},{y:2025,m:12,cat:'Bajadas',amt:-4045000},{y:2025,m:12,cat:'Sueldos',amt:-4355000},{y:2025,m:12,cat:'Publicidad',amt:-2530000},{y:2025,m:12,cat:'Panel',amt:-7500000},{y:2025,m:12,cat:'otros',amt:-568000},
-  {y:2026,m:1,cat:'Ingresos',amt:14018500},{y:2026,m:1,cat:'Bajadas',amt:-1907000},{y:2026,m:1,cat:'Sueldos',amt:-2993000},{y:2026,m:1,cat:'Publicidad',amt:-2620000},{y:2026,m:1,cat:'Panel',amt:-6100000},{y:2026,m:1,cat:'otros',amt:-398500},
-  {y:2026,m:2,cat:'Ingresos',amt:14920400},{y:2026,m:2,cat:'Bajadas',amt:-1952100},{y:2026,m:2,cat:'Sueldos',amt:-2747900},{y:2026,m:2,cat:'Publicidad',amt:-3300000},{y:2026,m:2,cat:'Panel',amt:-6507500},{y:2026,m:2,cat:'otros',amt:-412900},
-  {y:2026,m:3,cat:'Ingresos',amt:15663150},{y:2026,m:3,cat:'Bajadas',amt:-545000},{y:2026,m:3,cat:'Sueldos',amt:-3555000},{y:2026,m:3,cat:'Publicidad',amt:-4400000},{y:2026,m:3,cat:'Panel',amt:-6501900},{y:2026,m:3,cat:'otros',amt:-661250},
-  {y:2026,m:4,cat:'Ingresos',amt:14977676},{y:2026,m:4,cat:'Bajadas',amt:-3600000},{y:2026,m:4,cat:'Sueldos',amt:-900000},{y:2026,m:4,cat:'Publicidad',amt:-4160000},{y:2026,m:4,cat:'Panel',amt:-6250000},{y:2026,m:4,cat:'otros',amt:-67676},
+<div class="footer" id="fcnt"></div>
+</body>
+var DATA=[
+{y:2024,m:5,d:31,cat:'Ingresos',amt:12574356},
+{y:2024,m:5,d:31,cat:'Sueldos',amt:-3252288},
+{y:2024,m:5,d:31,cat:'Publicidad',amt:-2566100},
+{y:2024,m:5,d:31,cat:'Panel',amt:-2360000},
+{y:2024,m:5,d:31,cat:'Bajadas',amt:-2566800},
+{y:2024,m:6,d:1,cat:'Ingresos',amt:1001500},
+{y:2024,m:6,d:1,cat:'Publicidad',amt:-375512},
+{y:2024,m:6,d:1,cat:'Panel',amt:-270000},
+{y:2024,m:6,d:1,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:2,cat:'Ingresos',amt:600000},
+{y:2024,m:6,d:2,cat:'Panel',amt:-270000},
+{y:2024,m:6,d:2,cat:'Publicidad',amt:-447528},
+{y:2024,m:6,d:3,cat:'Ingresos',amt:300000},
+{y:2024,m:6,d:3,cat:'Sueldos',amt:-502502},
+{y:2024,m:6,d:3,cat:'Publicidad',amt:-1200000},
+{y:2024,m:6,d:4,cat:'Ingresos',amt:300000},
+{y:2024,m:6,d:4,cat:'Publicidad',amt:-96750},
+{y:2024,m:6,d:4,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:5,cat:'Ingresos',amt:500000},
+{y:2024,m:6,d:5,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:5,cat:'Bajadas',amt:-100000},
+{y:2024,m:6,d:6,cat:'Ingresos',amt:600000},
+{y:2024,m:6,d:6,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:6,cat:'Publicidad',amt:-500000},
+{y:2024,m:6,d:7,cat:'Ingresos',amt:400000},
+{y:2024,m:6,d:7,cat:'Bajadas',amt:-200000},
+{y:2024,m:6,d:7,cat:'Panel',amt:-270000},
+{y:2024,m:6,d:8,cat:'Ingresos',amt:200000},
+{y:2024,m:6,d:9,cat:'Publicidad',amt:-500000},
+{y:2024,m:6,d:9,cat:'Ingresos',amt:400000},
+{y:2024,m:6,d:10,cat:'Ingresos',amt:-100000},
+{y:2024,m:6,d:11,cat:'Ingresos',amt:200000},
+{y:2024,m:6,d:12,cat:'Ingresos',amt:500000},
+{y:2024,m:6,d:12,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:12,cat:'Publicidad',amt:-500000},
+{y:2024,m:6,d:13,cat:'Ingresos',amt:400000},
+{y:2024,m:6,d:13,cat:'Publicidad',amt:-500000},
+{y:2024,m:6,d:14,cat:'Ingresos',amt:700000},
+{y:2024,m:6,d:14,cat:'Panel',amt:-360000},
+{y:2024,m:6,d:15,cat:'Ingresos',amt:600000},
+{y:2024,m:6,d:15,cat:'Panel',amt:-270000},
+{y:2024,m:6,d:16,cat:'Ingresos',amt:200000},
+{y:2024,m:6,d:16,cat:'Bajadas',amt:-100000},
+{y:2024,m:6,d:17,cat:'Ingresos',amt:400000},
+{y:2024,m:6,d:17,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:17,cat:'Publicidad',amt:-600000},
+{y:2024,m:6,d:18,cat:'Ingresos',amt:900000},
+{y:2024,m:6,d:18,cat:'Publicidad',amt:-500000},
+{y:2024,m:6,d:18,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:19,cat:'Ingresos',amt:1000000},
+{y:2024,m:6,d:19,cat:'Publicidad',amt:-600000},
+{y:2024,m:6,d:19,cat:'Panel',amt:-270000},
+{y:2024,m:6,d:20,cat:'Ingresos',amt:700000},
+{y:2024,m:6,d:20,cat:'Panel',amt:-270000},
+{y:2024,m:6,d:21,cat:'Ingresos',amt:-100000},
+{y:2024,m:6,d:22,cat:'Ingresos',amt:300000},
+{y:2024,m:6,d:22,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:23,cat:'Ingresos',amt:100000},
+{y:2024,m:6,d:24,cat:'Sueldos',amt:-800000},
+{y:2024,m:6,d:24,cat:'Ingresos',amt:100000},
+{y:2024,m:6,d:25,cat:'Ingresos',amt:1000000},
+{y:2024,m:6,d:25,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:26,cat:'Ingresos',amt:300000},
+{y:2024,m:6,d:26,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:26,cat:'Sueldos',amt:-900000},
+{y:2024,m:6,d:27,cat:'Ingresos',amt:700000},
+{y:2024,m:6,d:27,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:28,cat:'Ingresos',amt:300000},
+{y:2024,m:6,d:28,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:28,cat:'Bajadas',amt:-200000},
+{y:2024,m:6,d:29,cat:'Ingresos',amt:700000},
+{y:2024,m:6,d:29,cat:'Panel',amt:-180000},
+{y:2024,m:6,d:30,cat:'Ingresos',amt:200000},
+{y:2024,m:7,d:1,cat:'Ingresos',amt:200000},
+{y:2024,m:7,d:1,cat:'Sueldos',amt:-582386},
+{y:2024,m:7,d:1,cat:'Publicidad',amt:-500000},
+{y:2024,m:7,d:1,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:2,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:3,cat:'Bajadas',amt:-100000},
+{y:2024,m:7,d:3,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:4,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:4,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:5,cat:'Publicidad',amt:-500000},
+{y:2024,m:7,d:5,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:5,cat:'Bajadas',amt:-300000},
+{y:2024,m:7,d:6,cat:'Ingresos',amt:700000},
+{y:2024,m:7,d:6,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:7,cat:'Ingresos',amt:400000},
+{y:2024,m:7,d:7,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:8,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:8,cat:'Publicidad',amt:-500000},
+{y:2024,m:7,d:9,cat:'Ingresos',amt:400000},
+{y:2024,m:7,d:9,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:10,cat:'Ingresos',amt:200000},
+{y:2024,m:7,d:11,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:11,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:13,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:13,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:14,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:14,cat:'Publicidad',amt:-500000},
+{y:2024,m:7,d:15,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:15,cat:'Publicidad',amt:-500000},
+{y:2024,m:7,d:15,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:16,cat:'Ingresos',amt:400000},
+{y:2024,m:7,d:16,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:17,cat:'Ingresos',amt:500000},
+{y:2024,m:7,d:17,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:17,cat:'Bajadas',amt:-422000},
+{y:2024,m:7,d:18,cat:'Ingresos',amt:200000},
+{y:2024,m:7,d:18,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:19,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:19,cat:'Bajadas',amt:-1044185},
+{y:2024,m:7,d:20,cat:'Ingresos',amt:800000},
+{y:2024,m:7,d:20,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:20,cat:'Publicidad',amt:-500000},
+{y:2024,m:7,d:21,cat:'Ingresos',amt:500000},
+{y:2024,m:7,d:22,cat:'Bajadas',amt:-147400},
+{y:2024,m:7,d:22,cat:'Ingresos',amt:400000},
+{y:2024,m:7,d:22,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:22,cat:'Sueldos',amt:-800000},
+{y:2024,m:7,d:23,cat:'Ingresos',amt:400000},
+{y:2024,m:7,d:23,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:23,cat:'Bajadas',amt:-72000},
+{y:2024,m:7,d:24,cat:'Ingresos',amt:100000},
+{y:2024,m:7,d:25,cat:'Ingresos',amt:300000},
+{y:2024,m:7,d:25,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:25,cat:'Bajadas',amt:-91600},
+{y:2024,m:7,d:26,cat:'Ingresos',amt:600000},
+{y:2024,m:7,d:26,cat:'Bajadas',amt:-220000},
+{y:2024,m:7,d:26,cat:'Sueldos',amt:-200000},
+{y:2024,m:7,d:26,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:28,cat:'Ingresos',amt:400000},
+{y:2024,m:7,d:28,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:29,cat:'Ingresos',amt:200000},
+{y:2024,m:7,d:29,cat:'Sueldos',amt:-800000},
+{y:2024,m:7,d:30,cat:'Ingresos',amt:200000},
+{y:2024,m:7,d:30,cat:'Panel',amt:-180000},
+{y:2024,m:7,d:31,cat:'Ingresos',amt:200000},
+{y:2024,m:8,d:1,cat:'Ingresos',amt:300000},
+{y:2024,m:8,d:1,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:2,cat:'Ingresos',amt:320000},
+{y:2024,m:8,d:2,cat:'Sueldos',amt:-317640},
+{y:2024,m:8,d:2,cat:'Publicidad',amt:-500000},
+{y:2024,m:8,d:3,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:3,cat:'Ingresos',amt:400000},
+{y:2024,m:8,d:4,cat:'Ingresos',amt:400000},
+{y:2024,m:8,d:4,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:4,cat:'Publicidad',amt:-500000},
+{y:2024,m:8,d:5,cat:'Ingresos',amt:500000},
+{y:2024,m:8,d:6,cat:'Ingresos',amt:200000},
+{y:2024,m:8,d:6,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:7,cat:'Ingresos',amt:200000},
+{y:2024,m:8,d:8,cat:'Ingresos',amt:300000},
+{y:2024,m:8,d:8,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:9,cat:'Ingresos',amt:400000},
+{y:2024,m:8,d:9,cat:'Publicidad',amt:-500000},
+{y:2024,m:8,d:9,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:10,cat:'Ingresos',amt:200000},
+{y:2024,m:8,d:10,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:11,cat:'Ingresos',amt:300000},
+{y:2024,m:8,d:12,cat:'Sueldos',amt:-150000},
+{y:2024,m:8,d:12,cat:'Ingresos',amt:300000},
+{y:2024,m:8,d:13,cat:'Ingresos',amt:700000},
+{y:2024,m:8,d:13,cat:'Panel',amt:-360000},
+{y:2024,m:8,d:13,cat:'Publicidad',amt:-500000},
+{y:2024,m:8,d:14,cat:'Ingresos',amt:570000},
+{y:2024,m:8,d:14,cat:'Bajadas',amt:-800000},
+{y:2024,m:8,d:14,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:14,cat:'Publicidad',amt:-500000},
+{y:2024,m:8,d:15,cat:'Ingresos',amt:300000},
+{y:2024,m:8,d:15,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:16,cat:'Ingresos',amt:700000},
+{y:2024,m:8,d:16,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:16,cat:'Sueldos',amt:-100000},
+{y:2024,m:8,d:17,cat:'Ingresos',amt:100000},
+{y:2024,m:8,d:17,cat:'Bajadas',amt:-140000},
+{y:2024,m:8,d:18,cat:'Ingresos',amt:600000},
+{y:2024,m:8,d:18,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:19,cat:'Ingresos',amt:500000},
+{y:2024,m:8,d:19,cat:'Publicidad',amt:-500000},
+{y:2024,m:8,d:19,cat:'Bajadas',amt:-400000},
+{y:2024,m:8,d:19,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:20,cat:'Ingresos',amt:100000},
+{y:2024,m:8,d:20,cat:'Panel',amt:-90000},
+{y:2024,m:8,d:21,cat:'Ingresos',amt:500000},
+{y:2024,m:8,d:21,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:22,cat:'Bajadas',amt:-403541},
+{y:2024,m:8,d:23,cat:'Ingresos',amt:100000},
+{y:2024,m:8,d:24,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:24,cat:'Ingresos',amt:100000},
+{y:2024,m:8,d:26,cat:'Ingresos',amt:800000},
+{y:2024,m:8,d:26,cat:'Panel',amt:-180000},
+{y:2024,m:8,d:27,cat:'Ingresos',amt:200000},
+{y:2024,m:8,d:27,cat:'Sueldos',amt:-900000},
+{y:2024,m:8,d:27,cat:'Bajadas',amt:-100000},
+{y:2024,m:8,d:28,cat:'Sueldos',amt:-200000},
+{y:2024,m:8,d:28,cat:'Ingresos',amt:200000},
+{y:2024,m:8,d:28,cat:'otros',amt:-207807},
+{y:2024,m:8,d:29,cat:'Ingresos',amt:100000},
+{y:2024,m:8,d:29,cat:'Panel',amt:-100000},
+{y:2024,m:9,d:2,cat:'Ingresos',amt:400000},
+{y:2024,m:9,d:2,cat:'Panel',amt:-200000},
+{y:2024,m:9,d:2,cat:'Sueldos',amt:-200000},
+{y:2024,m:9,d:3,cat:'Ingresos',amt:200000},
+{y:2024,m:9,d:3,cat:'Panel',amt:-100000},
+{y:2024,m:9,d:3,cat:'Sueldos',amt:-100000},
+{y:2024,m:9,d:4,cat:'Ingresos',amt:500000},
+{y:2024,m:9,d:4,cat:'Panel',amt:-200000},
+{y:2024,m:9,d:4,cat:'Sueldos',amt:-100000},
+{y:2024,m:9,d:4,cat:'Sueldos',amt:-200000},
+{y:2024,m:9,d:5,cat:'Ingresos',amt:310000},
+{y:2024,m:9,d:5,cat:'otros',amt:-310000},
+{y:2024,m:9,d:6,cat:'Ingresos',amt:300000},
+{y:2024,m:9,d:6,cat:'Sueldos',amt:-200000},
+{y:2024,m:9,d:6,cat:'Panel',amt:-100000},
+{y:2024,m:9,d:7,cat:'Ingresos',amt:500000},
+{y:2024,m:9,d:7,cat:'Sueldos',amt:-100000},
+{y:2024,m:9,d:7,cat:'Panel',amt:-300000},
+{y:2024,m:9,d:7,cat:'otros',amt:-100000},
+{y:2024,m:9,d:8,cat:'Ingresos',amt:150000},
+{y:2024,m:9,d:8,cat:'Sueldos',amt:-150000},
+{y:2024,m:9,d:9,cat:'Ingresos',amt:200000},
+{y:2024,m:9,d:9,cat:'Panel',amt:-100000},
+{y:2024,m:9,d:9,cat:'Sueldos',amt:-100000},
+{y:2024,m:9,d:10,cat:'Ingresos',amt:710000},
+{y:2024,m:9,d:10,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:10,cat:'Sueldos',amt:-95000},
+{y:2024,m:9,d:10,cat:'Publicidad',amt:-495000},
+{y:2024,m:9,d:11,cat:'Ingresos',amt:220000},
+{y:2024,m:9,d:11,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:11,cat:'Publicidad',amt:-100000},
+{y:2024,m:9,d:12,cat:'Ingresos',amt:320000},
+{y:2024,m:9,d:12,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:12,cat:'Publicidad',amt:-200000},
+{y:2024,m:9,d:13,cat:'Ingresos',amt:219013},
+{y:2024,m:9,d:13,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:13,cat:'Publicidad',amt:-99013},
+{y:2024,m:9,d:14,cat:'Ingresos',amt:219013},
+{y:2024,m:9,d:14,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:14,cat:'Publicidad',amt:-99013},
+{y:2024,m:9,d:15,cat:'Ingresos',amt:297039},
+{y:2024,m:9,d:15,cat:'Publicidad',amt:-297039},
+{y:2024,m:9,d:16,cat:'Ingresos',amt:438026},
+{y:2024,m:9,d:16,cat:'Panel',amt:-240000},
+{y:2024,m:9,d:16,cat:'Publicidad',amt:-198026},
+{y:2024,m:9,d:17,cat:'Ingresos',amt:297104},
+{y:2024,m:9,d:17,cat:'Publicidad',amt:-297104},
+{y:2024,m:9,d:18,cat:'Ingresos',amt:339067},
+{y:2024,m:9,d:18,cat:'Panel',amt:-240000},
+{y:2024,m:9,d:18,cat:'Publicidad',amt:-99067},
+{y:2024,m:9,d:19,cat:'Ingresos',amt:488111},
+{y:2024,m:9,d:19,cat:'Panel',amt:-240000},
+{y:2024,m:9,d:19,cat:'Publicidad',amt:-198111},
+{y:2024,m:9,d:19,cat:'Sueldos',amt:-50000},
+{y:2024,m:9,d:21,cat:'Ingresos',amt:470000},
+{y:2024,m:9,d:21,cat:'Panel',amt:-240000},
+{y:2024,m:9,d:21,cat:'Sueldos',amt:-230000},
+{y:2024,m:9,d:22,cat:'Ingresos',amt:470000},
+{y:2024,m:9,d:22,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:22,cat:'Sueldos',amt:-350000},
+{y:2024,m:9,d:23,cat:'Ingresos',amt:520000},
+{y:2024,m:9,d:23,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:23,cat:'Sueldos',amt:-400000},
+{y:2024,m:9,d:24,cat:'Ingresos',amt:440000},
+{y:2024,m:9,d:24,cat:'Panel',amt:-240000},
+{y:2024,m:9,d:24,cat:'Sueldos',amt:-200000},
+{y:2024,m:9,d:25,cat:'Ingresos',amt:418038},
+{y:2024,m:9,d:25,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:25,cat:'Publicidad',amt:-198038},
+{y:2024,m:9,d:25,cat:'Sueldos',amt:-100000},
+{y:2024,m:9,d:26,cat:'Ingresos',amt:516121},
+{y:2024,m:9,d:26,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:26,cat:'Publicidad',amt:-396121},
+{y:2024,m:9,d:27,cat:'Ingresos',amt:570000},
+{y:2024,m:9,d:27,cat:'Panel',amt:-220000},
+{y:2024,m:9,d:27,cat:'Sueldos',amt:-350000},
+{y:2024,m:9,d:28,cat:'Ingresos',amt:149097},
+{y:2024,m:9,d:28,cat:'Panel',amt:-50000},
+{y:2024,m:9,d:28,cat:'Publicidad',amt:-99097},
+{y:2024,m:9,d:29,cat:'Ingresos',amt:249013},
+{y:2024,m:9,d:29,cat:'Panel',amt:-150000},
+{y:2024,m:9,d:29,cat:'Publicidad',amt:-99013},
+{y:2024,m:9,d:30,cat:'Ingresos',amt:519029},
+{y:2024,m:9,d:30,cat:'Panel',amt:-120000},
+{y:2024,m:9,d:30,cat:'Publicidad',amt:-99029},
+{y:2024,m:9,d:30,cat:'Sueldos',amt:-200000},
+{y:2024,m:9,d:30,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:1,cat:'Ingresos',amt:378040},
+{y:2024,m:10,d:1,cat:'Panel',amt:-180000},
+{y:2024,m:10,d:1,cat:'Publicidad',amt:-297041},
+{y:2024,m:10,d:2,cat:'Ingresos',amt:250000},
+{y:2024,m:10,d:2,cat:'Panel',amt:-60000},
+{y:2024,m:10,d:2,cat:'otros',amt:-40000},
+{y:2024,m:10,d:2,cat:'Sueldos',amt:-100000},
+{y:2024,m:10,d:2,cat:'Bajadas',amt:-50000},
+{y:2024,m:10,d:3,cat:'Ingresos',amt:485050},
+{y:2024,m:10,d:3,cat:'Panel',amt:-150000},
+{y:2024,m:10,d:3,cat:'Publicidad',amt:-99049},
+{y:2024,m:10,d:3,cat:'Sueldos',amt:-137000},
+{y:2024,m:10,d:4,cat:'Ingresos',amt:538045},
+{y:2024,m:10,d:4,cat:'Panel',amt:-240000},
+{y:2024,m:10,d:4,cat:'Publicidad',amt:-198045},
+{y:2024,m:10,d:4,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:5,cat:'Ingresos',amt:1109014},
+{y:2024,m:10,d:5,cat:'Panel',amt:-390000},
+{y:2024,m:10,d:5,cat:'Publicidad',amt:-99014},
+{y:2024,m:10,d:5,cat:'Bajadas',amt:-620000},
+{y:2024,m:10,d:6,cat:'Ingresos',amt:647036},
+{y:2024,m:10,d:6,cat:'Panel',amt:-150000},
+{y:2024,m:10,d:6,cat:'Publicidad',amt:-297036},
+{y:2024,m:10,d:6,cat:'Bajadas',amt:-200000},
+{y:2024,m:10,d:7,cat:'Ingresos',amt:418070},
+{y:2024,m:10,d:7,cat:'Panel',amt:-120000},
+{y:2024,m:10,d:7,cat:'Publicidad',amt:-198070},
+{y:2024,m:10,d:7,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:8,cat:'Ingresos',amt:299028},
+{y:2024,m:10,d:8,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:8,cat:'Publicidad',amt:-99028},
+{y:2024,m:10,d:8,cat:'Sueldos',amt:-100000},
+{y:2024,m:10,d:8,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:9,cat:'Ingresos',amt:398050},
+{y:2024,m:10,d:9,cat:'Publicidad',amt:-198050},
+{y:2024,m:10,d:9,cat:'Sueldos',amt:-100000},
+{y:2024,m:10,d:9,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:10,cat:'Ingresos',amt:499019},
+{y:2024,m:10,d:10,cat:'Panel',amt:-200000},
+{y:2024,m:10,d:10,cat:'Publicidad',amt:-99019},
+{y:2024,m:10,d:10,cat:'Sueldos',amt:100000},
+{y:2024,m:10,d:10,cat:'Bajadas',amt:-200000},
+{y:2024,m:10,d:11,cat:'Ingresos',amt:499010},
+{y:2024,m:10,d:11,cat:'Panel',amt:-200000},
+{y:2024,m:10,d:11,cat:'Publicidad',amt:-99010},
+{y:2024,m:10,d:11,cat:'Bajadas',amt:-200000},
+{y:2024,m:10,d:12,cat:'Ingresos',amt:199030},
+{y:2024,m:10,d:12,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:12,cat:'Publicidad',amt:-99030},
+{y:2024,m:10,d:13,cat:'Ingresos',amt:389040},
+{y:2024,m:10,d:13,cat:'Panel',amt:-180000},
+{y:2024,m:10,d:13,cat:'Publicidad',amt:-99040},
+{y:2024,m:10,d:13,cat:'Bajadas',amt:-200000},
+{y:2024,m:10,d:14,cat:'Ingresos',amt:298024},
+{y:2024,m:10,d:14,cat:'Publicidad',amt:-198024},
+{y:2024,m:10,d:14,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:15,cat:'Ingresos',amt:299020},
+{y:2024,m:10,d:15,cat:'Panel',amt:-200000},
+{y:2024,m:10,d:15,cat:'Publicidad',amt:-99020},
+{y:2024,m:10,d:16,cat:'Ingresos',amt:489067},
+{y:2024,m:10,d:16,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:16,cat:'Publicidad',amt:-99067},
+{y:2024,m:10,d:16,cat:'Bajadas',amt:-200000},
+{y:2024,m:10,d:17,cat:'Ingresos',amt:399012},
+{y:2024,m:10,d:17,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:17,cat:'Publicidad',amt:-99012},
+{y:2024,m:10,d:17,cat:'Bajadas',amt:-200000},
+{y:2024,m:10,d:18,cat:'Ingresos',amt:948083},
+{y:2024,m:10,d:18,cat:'Panel',amt:-400000},
+{y:2024,m:10,d:18,cat:'Publicidad',amt:-198083},
+{y:2024,m:10,d:18,cat:'Sueldos',amt:-150000},
+{y:2024,m:10,d:18,cat:'Bajadas',amt:-200000},
+{y:2024,m:10,d:19,cat:'Ingresos',amt:598038},
+{y:2024,m:10,d:19,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:19,cat:'Publicidad',amt:-198038},
+{y:2024,m:10,d:19,cat:'Sueldos',amt:-200000},
+{y:2024,m:10,d:19,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:20,cat:'Ingresos',amt:398034},
+{y:2024,m:10,d:20,cat:'Panel',amt:-200000},
+{y:2024,m:10,d:20,cat:'Publicidad',amt:-198034},
+{y:2024,m:10,d:21,cat:'Ingresos',amt:298101},
+{y:2024,m:10,d:21,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:21,cat:'Publicidad',amt:-198101},
+{y:2024,m:10,d:22,cat:'Ingresos',amt:398089},
+{y:2024,m:10,d:22,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:22,cat:'Publicidad',amt:-198089},
+{y:2024,m:10,d:22,cat:'Sueldos',amt:-100000},
+{y:2024,m:10,d:23,cat:'Ingresos',amt:698024},
+{y:2024,m:10,d:23,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:23,cat:'Publicidad',amt:-198024},
+{y:2024,m:10,d:23,cat:'Sueldos',amt:-400000},
+{y:2024,m:10,d:24,cat:'Ingresos',amt:598029},
+{y:2024,m:10,d:24,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:24,cat:'Publicidad',amt:-198029},
+{y:2024,m:10,d:24,cat:'Sueldos',amt:-300000},
+{y:2024,m:10,d:25,cat:'Ingresos',amt:798024},
+{y:2024,m:10,d:25,cat:'Panel',amt:-300000},
+{y:2024,m:10,d:25,cat:'Publicidad',amt:-198024},
+{y:2024,m:10,d:25,cat:'Sueldos',amt:-300000},
+{y:2024,m:10,d:26,cat:'Ingresos',amt:698021},
+{y:2024,m:10,d:26,cat:'Panel',amt:-200000},
+{y:2024,m:10,d:26,cat:'Publicidad',amt:-198021},
+{y:2024,m:10,d:26,cat:'Sueldos',amt:-200000},
+{y:2024,m:10,d:25,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:27,cat:'Ingresos',amt:397044},
+{y:2024,m:10,d:27,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:27,cat:'Publicidad',amt:-297044},
+{y:2024,m:10,d:28,cat:'Ingresos',amt:399010},
+{y:2024,m:10,d:28,cat:'Panel',amt:-200000},
+{y:2024,m:10,d:28,cat:'Publicidad',amt:-99010},
+{y:2024,m:10,d:28,cat:'Sueldos',amt:-100000},
+{y:2024,m:10,d:29,cat:'Ingresos',amt:99014},
+{y:2024,m:10,d:29,cat:'Publicidad',amt:-99014},
+{y:2024,m:10,d:30,cat:'Ingresos',amt:498024},
+{y:2024,m:10,d:30,cat:'Panel',amt:-200000},
+{y:2024,m:10,d:30,cat:'Publicidad',amt:-198024},
+{y:2024,m:10,d:30,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:31,cat:'Ingresos',amt:498105},
+{y:2024,m:10,d:31,cat:'Panel',amt:-100000},
+{y:2024,m:10,d:31,cat:'Publicidad',amt:-198105},
+{y:2024,m:10,d:31,cat:'Bajadas',amt:-100000},
+{y:2024,m:10,d:31,cat:'otros',amt:-100000},
+{y:2024,m:11,d:1,cat:'Ingresos',amt:698122},
+{y:2024,m:11,d:1,cat:'Panel',amt:-300000},
+{y:2024,m:11,d:1,cat:'Publicidad',amt:-198122},
+{y:2024,m:11,d:1,cat:'Bajadas',amt:-100000},
+{y:2024,m:11,d:1,cat:'otros',amt:-100000},
+{y:2024,m:11,d:2,cat:'Ingresos',amt:898029},
+{y:2024,m:11,d:2,cat:'Panel',amt:-300000},
+{y:2024,m:11,d:2,cat:'Publicidad',amt:-198029},
+{y:2024,m:11,d:2,cat:'Bajadas',amt:-200000},
+{y:2024,m:11,d:2,cat:'otros',amt:-200000},
+{y:2024,m:11,d:3,cat:'Ingresos',amt:498030},
+{y:2024,m:11,d:3,cat:'Panel',amt:-100000},
+{y:2024,m:11,d:3,cat:'Publicidad',amt:-198030},
+{y:2024,m:11,d:3,cat:'otros',amt:-200000},
+{y:2024,m:11,d:4,cat:'Ingresos',amt:940973},
+{y:2024,m:11,d:4,cat:'Panel',amt:-300000},
+{y:2024,m:11,d:4,cat:'Publicidad',amt:-198056},
+{y:2024,m:11,d:4,cat:'Sueldos',amt:-342916},
+{y:2024,m:11,d:4,cat:'otros',amt:-100000},
+{y:2024,m:11,d:5,cat:'Ingresos',amt:500198},
+{y:2024,m:11,d:5,cat:'Panel',amt:-100000},
+{y:2024,m:11,d:5,cat:'Publicidad',amt:-198031},
+{y:2024,m:11,d:5,cat:'Sueldos',amt:-202167},
+{y:2024,m:11,d:6,cat:'Ingresos',amt:578022},
+{y:2024,m:11,d:6,cat:'Panel',amt:-350000},
+{y:2024,m:11,d:6,cat:'Publicidad',amt:-198022},
+{y:2024,m:11,d:6,cat:'otros',amt:-30000},
+{y:2024,m:11,d:7,cat:'Ingresos',amt:498025},
+{y:2024,m:11,d:7,cat:'Panel',amt:-100000},
+{y:2024,m:11,d:7,cat:'Publicidad',amt:-198025},
+{y:2024,m:11,d:7,cat:'Bajadas',amt:-100000},
+{y:2024,m:11,d:7,cat:'otros',amt:-100000},
+{y:2024,m:11,d:8,cat:'Ingresos',amt:848421},
+{y:2024,m:11,d:8,cat:'Panel',amt:-200000},
+{y:2024,m:11,d:8,cat:'Publicidad',amt:-198028},
+{y:2024,m:11,d:8,cat:'Bajadas',amt:-300000},
+{y:2024,m:11,d:8,cat:'otros',amt:-150393},
+{y:2024,m:11,d:9,cat:'Ingresos',amt:498026},
+{y:2024,m:11,d:9,cat:'Panel',amt:-100000},
+{y:2024,m:11,d:9,cat:'Publicidad',amt:-198026},
+{y:2024,m:11,d:9,cat:'otros',amt:-200000},
+{y:2024,m:11,d:10,cat:'Ingresos',amt:299018},
+{y:2024,m:11,d:10,cat:'Panel',amt:-100000},
+{y:2024,m:11,d:10,cat:'Publicidad',amt:-99018},
+{y:2024,m:11,d:10,cat:'otros',amt:-100000},
+{y:2024,m:11,d:11,cat:'Ingresos',amt:879166},
+{y:2024,m:11,d:11,cat:'Panel',amt:-300000},
+{y:2024,m:11,d:11,cat:'Publicidad',amt:-198026},
+{y:2024,m:11,d:11,cat:'Bajadas',amt:-200000},
+{y:2024,m:11,d:11,cat:'otros',amt:-181140},
+{y:2024,m:11,d:12,cat:'Ingresos',amt:498026},
+{y:2024,m:11,d:12,cat:'Panel',amt:-100000},
+{y:2024,m:11,d:12,cat:'Publicidad',amt:-198026},
+{y:2024,m:11,d:12,cat:'Bajadas',amt:-100000},
+{y:2024,m:11,d:12,cat:'otros',amt:-100000},
+{y:2024,m:11,d:13,cat:'Ingresos',amt:884033},
+{y:2024,m:11,d:13,cat:'Panel',amt:-300000},
+{y:2024,m:11,d:13,cat:'Publicidad',amt:-198033},
+{y:2024,m:11,d:13,cat:'Bajadas',amt:-286000},
+{y:2024,m:11,d:13,cat:'otros',amt:-100000},
+{y:2024,m:11,d:14,cat:'Ingresos',amt:1019031},
+{y:2024,m:11,d:14,cat:'Panel',amt:-400000},
+{y:2024,m:11,d:14,cat:'Publicidad',amt:-198031},
+{y:2024,m:11,d:14,cat:'Sueldos',amt:-35000},
+{y:2024,m:11,d:14,cat:'Bajadas',amt:-386000},
+{y:2024,m:11,d:15,cat:'Ingresos',amt:538023},
+{y:2024,m:11,d:15,cat:'Panel',amt:-200000},
+{y:2024,m:11,d:15,cat:'Publicidad',amt:-198023},
+{y:2024,m:11,d:15,cat:'Sueldos',amt:-40000},
+{y:2024,m:11,d:15,cat:'Bajadas',amt:-100000},
+{y:2024,m:11,d:16,cat:'Ingresos',amt:498050},
+{y:2024,m:11,d:16,cat:'Panel',amt:-100000},
+{y:2024,m:11,d:16,cat:'Publicidad',amt:-198050},
+{y:2024,m:11,d:16,cat:'Sueldos',amt:-200000},
+{y:2024,m:11,d:17,cat:'Ingresos',amt:798030},
+{y:2024,m:11,d:17,cat:'Panel',amt:-200000},
+{y:2024,m:11,d:17,cat:'Publicidad',amt:-198030},
+{y:2024,m:11,d:17,cat:'Sueldos',amt:-400000},
+{y:2024,m:11,d:18,cat:'Ingresos',amt:698061},
+{y:2024,m:11,d:18,cat:'Panel',amt:-300000},
+{y:2024,m:11,d:18,cat:'Publicidad',amt:-198061},
+{y:2024,m:11,d:18,cat:'Sueldos',amt:-200000},
+{y:2024,m:11,d:20,cat:'Ingresos',amt:498054},
+{y:2024,m:11,d:20,cat:'Panel',amt:-100000},
+{y:2024,m:11,d:20,cat:'Publicidad',amt:-198054},
+{y:2024,m:11,d:20,cat:'Sueldos',amt:-100000},
+{y:2024,m:11,d:20,cat:'Bajadas',amt:-100000},
+{y:2024,m:11,d:21,cat:'Ingresos',amt:699017},
+{y:2024,m:11,d:21,cat:'Panel',amt:-300000},
+{y:2024,m:11,d:21,cat:'Publicidad',amt:-99017},
+{y:2024,m:11,d:21,cat:'Sueldos',amt:-300000},
+{y:2024,m:11,d:22,cat:'Ingresos',amt:348087},
+{y:2024,m:11,d:22,cat:'Publicidad',amt:-198087},
+{y:2024,m:11,d:22,cat:'Bajadas',amt:-150000},
+{y:2024,m:11,d:23,cat:'Ingresos',amt:698042},
+{y:2024,m:11,d:23,cat:'Panel',amt:-400000},
+{y:2024,m:11,d:23,cat:'Publicidad',amt:-198042},
+{y:2024,m:11,d:23,cat:'otros',amt:-100000},
+{y:2024,m:11,d:24,cat:'Ingresos',amt:398147},
+{y:2024,m:11,d:24,cat:'Publicidad',amt:-198147},
+{y:2024,m:11,d:24,cat:'Sueldos',amt:-200000},
+{y:2024,m:11,d:25,cat:'Ingresos',amt:199012},
+{y:2024,m:11,d:25,cat:'Publicidad',amt:-99012},
+{y:2024,m:11,d:25,cat:'Bajadas',amt:-100000},
+{y:2024,m:11,d:26,cat:'Ingresos',amt:198060},
+{y:2024,m:11,d:26,cat:'Publicidad',amt:-198060},
+{y:2024,m:11,d:27,cat:'Ingresos',amt:200000},
+{y:2024,m:11,d:27,cat:'Panel',amt:-200000},
+{y:2024,m:11,d:28,cat:'Ingresos',amt:798037},
+{y:2024,m:11,d:28,cat:'Panel',amt:-300000},
+{y:2024,m:11,d:28,cat:'Publicidad',amt:-198037},
+{y:2024,m:11,d:28,cat:'Bajadas',amt:-200000},
+{y:2024,m:11,d:28,cat:'otros',amt:-100000},
+{y:2024,m:11,d:29,cat:'Ingresos',amt:700000},
+{y:2024,m:11,d:29,cat:'Panel',amt:-200000},
+{y:2024,m:11,d:29,cat:'Publicidad',amt:-200000},
+{y:2024,m:11,d:29,cat:'Bajadas',amt:-300000},
+{y:2024,m:11,d:30,cat:'Ingresos',amt:1240105},
+{y:2024,m:11,d:30,cat:'Panel',amt:-400000},
+{y:2024,m:11,d:30,cat:'Publicidad',amt:-198093},
+{y:2024,m:11,d:30,cat:'Sueldos',amt:-200000},
+{y:2024,m:11,d:30,cat:'Bajadas',amt:-400000},
+{y:2024,m:11,d:30,cat:'otros',amt:-42012},
+{y:2024,m:12,d:1,cat:'Ingresos',amt:798056},
+{y:2024,m:12,d:1,cat:'Panel',amt:-200000},
+{y:2024,m:12,d:1,cat:'Publicidad',amt:-198056},
+{y:2024,m:12,d:1,cat:'Sueldos',amt:-400000},
+{y:2024,m:12,d:2,cat:'Ingresos',amt:507681},
+{y:2024,m:12,d:2,cat:'Panel',amt:-100000},
+{y:2024,m:12,d:2,cat:'Publicidad',amt:-198092},
+{y:2024,m:12,d:2,cat:'Sueldos',amt:-209589},
+{y:2024,m:12,d:3,cat:'Ingresos',amt:1020331},
+{y:2024,m:12,d:3,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:3,cat:'Publicidad',amt:-198036},
+{y:2024,m:12,d:3,cat:'Sueldos',amt:-222295},
+{y:2024,m:12,d:3,cat:'Bajadas',amt:-300000},
+{y:2024,m:12,d:4,cat:'Ingresos',amt:1097134},
+{y:2024,m:12,d:4,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:4,cat:'Publicidad',amt:-297134},
+{y:2024,m:12,d:4,cat:'Bajadas',amt:-500000},
+{y:2024,m:12,d:5,cat:'Ingresos',amt:1197068},
+{y:2024,m:12,d:5,cat:'Panel',amt:-400000},
+{y:2024,m:12,d:5,cat:'Publicidad',amt:-297068},
+{y:2024,m:12,d:5,cat:'Bajadas',amt:-500000},
+{y:2024,m:12,d:6,cat:'Ingresos',amt:1196096},
+{y:2024,m:12,d:6,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:6,cat:'Publicidad',amt:-396096},
+{y:2024,m:12,d:6,cat:'Bajadas',amt:-500000},
+{y:2024,m:12,d:7,cat:'Ingresos',amt:1203446},
+{y:2024,m:12,d:7,cat:'Panel',amt:-500000},
+{y:2024,m:12,d:7,cat:'Publicidad',amt:-297101},
+{y:2024,m:12,d:7,cat:'Bajadas',amt:-400000},
+{y:2024,m:12,d:7,cat:'otros',amt:-6345},
+{y:2024,m:12,d:8,cat:'Ingresos',amt:997085},
+{y:2024,m:12,d:8,cat:'Panel',amt:-200000},
+{y:2024,m:12,d:8,cat:'Publicidad',amt:-297085},
+{y:2024,m:12,d:8,cat:'Bajadas',amt:-500000},
+{y:2024,m:12,d:10,cat:'Ingresos',amt:397111},
+{y:2024,m:12,d:10,cat:'Panel',amt:-100000},
+{y:2024,m:12,d:10,cat:'Publicidad',amt:-297111},
+{y:2024,m:12,d:11,cat:'Ingresos',amt:797054},
+{y:2024,m:12,d:11,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:11,cat:'Publicidad',amt:-297054},
+{y:2024,m:12,d:11,cat:'Bajadas',amt:-200000},
+{y:2024,m:12,d:12,cat:'Ingresos',amt:670517},
+{y:2024,m:12,d:12,cat:'Panel',amt:-100000},
+{y:2024,m:12,d:12,cat:'Publicidad',amt:-396061},
+{y:2024,m:12,d:12,cat:'Sueldos',amt:-50000},
+{y:2024,m:12,d:12,cat:'otros',amt:-124456},
+{y:2024,m:12,d:13,cat:'Ingresos',amt:1603074},
+{y:2024,m:12,d:13,cat:'Panel',amt:-500000},
+{y:2024,m:12,d:13,cat:'Publicidad',amt:-396164},
+{y:2024,m:12,d:13,cat:'Sueldos',amt:-100000},
+{y:2024,m:12,d:13,cat:'Bajadas',amt:-560000},
+{y:2024,m:12,d:13,cat:'otros',amt:-46910},
+{y:2024,m:12,d:14,cat:'Ingresos',amt:997171},
+{y:2024,m:12,d:14,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:14,cat:'Publicidad',amt:-297171},
+{y:2024,m:12,d:14,cat:'Bajadas',amt:-300000},
+{y:2024,m:12,d:14,cat:'otros',amt:-100000},
+{y:2024,m:12,d:15,cat:'Ingresos',amt:1297110},
+{y:2024,m:12,d:15,cat:'Panel',amt:-500000},
+{y:2024,m:12,d:15,cat:'Publicidad',amt:-297110},
+{y:2024,m:12,d:15,cat:'Sueldos',amt:-400000},
+{y:2024,m:12,d:15,cat:'otros',amt:-100000},
+{y:2024,m:12,d:16,cat:'Ingresos',amt:897084},
+{y:2024,m:12,d:16,cat:'Panel',amt:-100000},
+{y:2024,m:12,d:16,cat:'Publicidad',amt:-297084},
+{y:2024,m:12,d:16,cat:'Sueldos',amt:-400000},
+{y:2024,m:12,d:16,cat:'otros',amt:-100000},
+{y:2024,m:12,d:17,cat:'Ingresos',amt:897119},
+{y:2024,m:12,d:17,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:17,cat:'Publicidad',amt:-297119},
+{y:2024,m:12,d:17,cat:'Sueldos',amt:-300000},
+{y:2024,m:12,d:18,cat:'Ingresos',amt:1500000},
+{y:2024,m:12,d:18,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:18,cat:'Publicidad',amt:-300000},
+{y:2024,m:12,d:18,cat:'Sueldos',amt:-600000},
+{y:2024,m:12,d:18,cat:'otros',amt:-300000},
+{y:2024,m:12,d:19,cat:'Ingresos',amt:1550000},
+{y:2024,m:12,d:19,cat:'Panel',amt:-600000},
+{y:2024,m:12,d:19,cat:'Publicidad',amt:-299919},
+{y:2024,m:12,d:19,cat:'Sueldos',amt:-600000},
+{y:2024,m:12,d:19,cat:'Bajadas',amt:-250000},
+{y:2024,m:12,d:19,cat:'otros',amt:177919},
+{y:2024,m:12,d:20,cat:'Ingresos',amt:2097400},
+{y:2024,m:12,d:20,cat:'Panel',amt:-600000},
+{y:2024,m:12,d:20,cat:'Publicidad',amt:-299920},
+{y:2024,m:12,d:20,cat:'Bajadas',amt:-1175400},
+{y:2024,m:12,d:20,cat:'otros',amt:-80},
+{y:2024,m:12,d:21,cat:'Ingresos',amt:1197048},
+{y:2024,m:12,d:21,cat:'Panel',amt:-400000},
+{y:2024,m:12,d:21,cat:'Publicidad',amt:-297048},
+{y:2024,m:12,d:21,cat:'Bajadas',amt:-300000},
+{y:2024,m:12,d:21,cat:'otros',amt:-200000},
+{y:2024,m:12,d:22,cat:'Ingresos',amt:1297064},
+{y:2024,m:12,d:22,cat:'Panel',amt:-500000},
+{y:2024,m:12,d:22,cat:'Publicidad',amt:-297064},
+{y:2024,m:12,d:22,cat:'Bajadas',amt:-400000},
+{y:2024,m:12,d:22,cat:'otros',amt:-100000},
+{y:2024,m:12,d:23,cat:'Ingresos',amt:1332055},
+{y:2024,m:12,d:23,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:23,cat:'Publicidad',amt:-297055},
+{y:2024,m:12,d:23,cat:'Bajadas',amt:-300000},
+{y:2024,m:12,d:23,cat:'otros',amt:-435000},
+{y:2024,m:12,d:24,cat:'Ingresos',amt:1472055},
+{y:2024,m:12,d:24,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:24,cat:'Publicidad',amt:-297055},
+{y:2024,m:12,d:24,cat:'Sueldos',amt:-75000},
+{y:2024,m:12,d:24,cat:'Bajadas',amt:-800000},
+{y:2024,m:12,d:25,cat:'Ingresos',amt:1175000},
+{y:2024,m:12,d:25,cat:'Panel',amt:-600000},
+{y:2024,m:12,d:25,cat:'Sueldos',amt:-75000},
+{y:2024,m:12,d:25,cat:'Bajadas',amt:-600000},
+{y:2024,m:12,d:25,cat:'otros',amt:100000},
+{y:2024,m:12,d:26,cat:'Ingresos',amt:797066},
+{y:2024,m:12,d:26,cat:'Panel',amt:-100000},
+{y:2024,m:12,d:26,cat:'Publicidad',amt:-297066},
+{y:2024,m:12,d:26,cat:'Bajadas',amt:-400000},
+{y:2024,m:12,d:27,cat:'Ingresos',amt:872055},
+{y:2024,m:12,d:27,cat:'Panel',amt:-200000},
+{y:2024,m:12,d:27,cat:'Publicidad',amt:-297055},
+{y:2024,m:12,d:27,cat:'Sueldos',amt:-75000},
+{y:2024,m:12,d:27,cat:'Bajadas',amt:-300000},
+{y:2024,m:12,d:28,cat:'Ingresos',amt:797142},
+{y:2024,m:12,d:28,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:28,cat:'Publicidad',amt:-297142},
+{y:2024,m:12,d:28,cat:'Bajadas',amt:-200000},
+{y:2024,m:12,d:29,cat:'Ingresos',amt:1522055},
+{y:2024,m:12,d:29,cat:'Panel',amt:-300000},
+{y:2024,m:12,d:29,cat:'Publicidad',amt:-297055},
+{y:2024,m:12,d:29,cat:'Bajadas',amt:-900000},
+{y:2024,m:12,d:29,cat:'otros',amt:-25000},
+{y:2024,m:12,d:31,cat:'Ingresos',amt:922076},
+{y:2024,m:12,d:31,cat:'Panel',amt:-350000},
+{y:2024,m:12,d:31,cat:'Publicidad',amt:-297076},
+{y:2024,m:12,d:31,cat:'Sueldos',amt:-75000},
+{y:2024,m:12,d:31,cat:'Bajadas',amt:-200000},
+{y:2025,m:1,d:1,cat:'Ingresos',amt:822500},
+{y:2025,m:1,d:1,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:1,cat:'Sueldos',amt:-90000},
+{y:2025,m:1,d:1,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:1,cat:'otros',amt:-32500},
+{y:2025,m:1,d:2,cat:'Ingresos',amt:997151},
+{y:2025,m:1,d:2,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:2,cat:'Publicidad',amt:-297151},
+{y:2025,m:1,d:2,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:3,cat:'Ingresos',amt:997181},
+{y:2025,m:1,d:3,cat:'Panel',amt:-100000},
+{y:2025,m:1,d:3,cat:'Publicidad',amt:-297181},
+{y:2025,m:1,d:3,cat:'Bajadas',amt:-600000},
+{y:2025,m:1,d:4,cat:'Ingresos',amt:897045},
+{y:2025,m:1,d:4,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:4,cat:'Publicidad',amt:-297045},
+{y:2025,m:1,d:4,cat:'Bajadas',amt:-300000},
+{y:2025,m:1,d:5,cat:'Ingresos',amt:1197036},
+{y:2025,m:1,d:5,cat:'Panel',amt:-400000},
+{y:2025,m:1,d:5,cat:'Publicidad',amt:-297036},
+{y:2025,m:1,d:5,cat:'Bajadas',amt:-500000},
+{y:2025,m:1,d:6,cat:'Ingresos',amt:945814},
+{y:2025,m:1,d:6,cat:'Panel',amt:-200000},
+{y:2025,m:1,d:6,cat:'Publicidad',amt:-297234},
+{y:2025,m:1,d:6,cat:'Sueldos',amt:-434600},
+{y:2025,m:1,d:6,cat:'otros',amt:-13980},
+{y:2025,m:1,d:7,cat:'Ingresos',amt:1285665},
+{y:2025,m:1,d:7,cat:'Panel',amt:-600000},
+{y:2025,m:1,d:7,cat:'Publicidad',amt:-297065},
+{y:2025,m:1,d:7,cat:'Sueldos',amt:-354900},
+{y:2025,m:1,d:7,cat:'otros',amt:-33700},
+{y:2025,m:1,d:8,cat:'Ingresos',amt:697078},
+{y:2025,m:1,d:8,cat:'Publicidad',amt:-297078},
+{y:2025,m:1,d:8,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:9,cat:'Ingresos',amt:598091},
+{y:2025,m:1,d:9,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:9,cat:'Publicidad',amt:-198091},
+{y:2025,m:1,d:9,cat:'Bajadas',amt:-100000},
+{y:2025,m:1,d:10,cat:'Ingresos',amt:298027},
+{y:2025,m:1,d:10,cat:'Publicidad',amt:-198027},
+{y:2025,m:1,d:10,cat:'Bajadas',amt:-100000},
+{y:2025,m:1,d:11,cat:'Ingresos',amt:698022},
+{y:2025,m:1,d:11,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:11,cat:'Publicidad',amt:-198022},
+{y:2025,m:1,d:11,cat:'Bajadas',amt:-200000},
+{y:2025,m:1,d:12,cat:'Ingresos',amt:333986},
+{y:2025,m:1,d:12,cat:'Publicidad',amt:-297096},
+{y:2025,m:1,d:12,cat:'otros',amt:-36890},
+{y:2025,m:1,d:13,cat:'Ingresos',amt:298030},
+{y:2025,m:1,d:13,cat:'Publicidad',amt:-198030},
+{y:2025,m:1,d:13,cat:'Bajadas',amt:-100000},
+{y:2025,m:1,d:14,cat:'Ingresos',amt:898081},
+{y:2025,m:1,d:14,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:14,cat:'Publicidad',amt:-198081},
+{y:2025,m:1,d:14,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:15,cat:'Ingresos',amt:898072},
+{y:2025,m:1,d:15,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:15,cat:'Publicidad',amt:-198072},
+{y:2025,m:1,d:15,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:16,cat:'Ingresos',amt:898028},
+{y:2025,m:1,d:16,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:16,cat:'Publicidad',amt:-198028},
+{y:2025,m:1,d:16,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:17,cat:'Ingresos',amt:698056},
+{y:2025,m:1,d:17,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:17,cat:'Publicidad',amt:-198056},
+{y:2025,m:1,d:17,cat:'Bajadas',amt:-200000},
+{y:2025,m:1,d:18,cat:'Ingresos',amt:1098056},
+{y:2025,m:1,d:18,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:18,cat:'Publicidad',amt:-198056},
+{y:2025,m:1,d:18,cat:'Bajadas',amt:-600000},
+{y:2025,m:1,d:19,cat:'Ingresos',amt:298039},
+{y:2025,m:1,d:19,cat:'Publicidad',amt:-198039},
+{y:2025,m:1,d:19,cat:'Bajadas',amt:-100000},
+{y:2025,m:1,d:20,cat:'Ingresos',amt:711674},
+{y:2025,m:1,d:20,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:20,cat:'Publicidad',amt:-198114},
+{y:2025,m:1,d:20,cat:'Sueldos',amt:-100000},
+{y:2025,m:1,d:20,cat:'Bajadas',amt:-100000},
+{y:2025,m:1,d:20,cat:'otros',amt:-13560},
+{y:2025,m:1,d:21,cat:'Ingresos',amt:997075},
+{y:2025,m:1,d:21,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:21,cat:'Publicidad',amt:-297075},
+{y:2025,m:1,d:21,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:22,cat:'Ingresos',amt:497187},
+{y:2025,m:1,d:22,cat:'Publicidad',amt:-297187},
+{y:2025,m:1,d:22,cat:'Bajadas',amt:-200000},
+{y:2025,m:1,d:23,cat:'Ingresos',amt:597072},
+{y:2025,m:1,d:23,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:23,cat:'Publicidad',amt:-297072},
+{y:2025,m:1,d:24,cat:'Ingresos',amt:997083},
+{y:2025,m:1,d:24,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:24,cat:'Publicidad',amt:-297083},
+{y:2025,m:1,d:24,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:25,cat:'Ingresos',amt:99088},
+{y:2025,m:1,d:25,cat:'Publicidad',amt:-99088},
+{y:2025,m:1,d:26,cat:'Ingresos',amt:297066},
+{y:2025,m:1,d:26,cat:'Publicidad',amt:-297066},
+{y:2025,m:1,d:27,cat:'Ingresos',amt:1121969},
+{y:2025,m:1,d:27,cat:'Panel',amt:-400000},
+{y:2025,m:1,d:27,cat:'Publicidad',amt:-297072},
+{y:2025,m:1,d:27,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:27,cat:'otros',amt:-24897},
+{y:2025,m:1,d:28,cat:'Ingresos',amt:797072},
+{y:2025,m:1,d:28,cat:'Panel',amt:-300000},
+{y:2025,m:1,d:28,cat:'Publicidad',amt:-297072},
+{y:2025,m:1,d:28,cat:'Bajadas',amt:-200000},
+{y:2025,m:1,d:29,cat:'Ingresos',amt:1168572},
+{y:2025,m:1,d:29,cat:'Panel',amt:-400000},
+{y:2025,m:1,d:29,cat:'Publicidad',amt:-297072},
+{y:2025,m:1,d:29,cat:'Sueldos',amt:-50000},
+{y:2025,m:1,d:29,cat:'Bajadas',amt:-400000},
+{y:2025,m:1,d:29,cat:'otros',amt:-21500},
+{y:2025,m:1,d:30,cat:'Ingresos',amt:897086},
+{y:2025,m:1,d:30,cat:'Panel',amt:-400000},
+{y:2025,m:1,d:30,cat:'Publicidad',amt:-297086},
+{y:2025,m:1,d:30,cat:'Bajadas',amt:-200000},
+{y:2025,m:1,d:31,cat:'Ingresos',amt:398113},
+{y:2025,m:1,d:31,cat:'Publicidad',amt:-198113},
+{y:2025,m:1,d:31,cat:'otros',amt:-200000},
+{y:2025,m:2,d:1,cat:'Ingresos',amt:1497072},
+{y:2025,m:2,d:1,cat:'Panel',amt:-600000},
+{y:2025,m:2,d:1,cat:'Publicidad',amt:-297072},
+{y:2025,m:2,d:1,cat:'Bajadas',amt:-600000},
+{y:2025,m:2,d:2,cat:'Ingresos',amt:397072},
+{y:2025,m:2,d:2,cat:'Publicidad',amt:-297072},
+{y:2025,m:2,d:2,cat:'Bajadas',amt:-100000},
+{y:2025,m:2,d:3,cat:'Ingresos',amt:298046},
+{y:2025,m:2,d:3,cat:'Publicidad',amt:-198046},
+{y:2025,m:2,d:3,cat:'Bajadas',amt:-100000},
+{y:2025,m:2,d:4,cat:'Ingresos',amt:998038},
+{y:2025,m:2,d:4,cat:'Panel',amt:-500000},
+{y:2025,m:2,d:4,cat:'Publicidad',amt:-198038},
+{y:2025,m:2,d:4,cat:'Bajadas',amt:-300000},
+{y:2025,m:2,d:5,cat:'Ingresos',amt:597115},
+{y:2025,m:2,d:5,cat:'Publicidad',amt:-297115},
+{y:2025,m:2,d:5,cat:'Bajadas',amt:-300000},
+{y:2025,m:2,d:6,cat:'Ingresos',amt:1112650},
+{y:2025,m:2,d:6,cat:'Panel',amt:-400000},
+{y:2025,m:2,d:6,cat:'Publicidad',amt:-198081},
+{y:2025,m:2,d:6,cat:'Bajadas',amt:-500000},
+{y:2025,m:2,d:6,cat:'otros',amt:-14569},
+{y:2025,m:2,d:7,cat:'Ingresos',amt:598074},
+{y:2025,m:2,d:7,cat:'Panel',amt:-300000},
+{y:2025,m:2,d:7,cat:'Publicidad',amt:-198074},
+{y:2025,m:2,d:7,cat:'Bajadas',amt:-100000},
+{y:2025,m:2,d:8,cat:'Ingresos',amt:597115},
+{y:2025,m:2,d:8,cat:'Publicidad',amt:-297115},
+{y:2025,m:2,d:8,cat:'Bajadas',amt:-300000},
+{y:2025,m:2,d:9,cat:'Ingresos',amt:697072},
+{y:2025,m:2,d:9,cat:'Panel',amt:-300000},
+{y:2025,m:2,d:9,cat:'Publicidad',amt:-297072},
+{y:2025,m:2,d:9,cat:'Bajadas',amt:-100000},
+{y:2025,m:2,d:10,cat:'Ingresos',amt:199010},
+{y:2025,m:2,d:10,cat:'Publicidad',amt:-99010},
+{y:2025,m:2,d:10,cat:'Bajadas',amt:-100000},
+{y:2025,m:2,d:11,cat:'Ingresos',amt:598038},
+{y:2025,m:2,d:11,cat:'Panel',amt:-200000},
+{y:2025,m:2,d:11,cat:'Publicidad',amt:-198038},
+{y:2025,m:2,d:11,cat:'Bajadas',amt:-200000},
+{y:2025,m:2,d:12,cat:'Ingresos',amt:698103},
+{y:2025,m:2,d:12,cat:'Panel',amt:-300000},
+{y:2025,m:2,d:12,cat:'Publicidad',amt:-198103},
+{y:2025,m:2,d:12,cat:'Bajadas',amt:-200000},
+{y:2025,m:2,d:13,cat:'Ingresos',amt:698028},
+{y:2025,m:2,d:13,cat:'Panel',amt:-100000},
+{y:2025,m:2,d:13,cat:'Publicidad',amt:-198028},
+{y:2025,m:2,d:13,cat:'Bajadas',amt:-400000},
+{y:2025,m:2,d:14,cat:'Ingresos',amt:1525247},
+{y:2025,m:2,d:14,cat:'Panel',amt:-600000},
+{y:2025,m:2,d:14,cat:'Publicidad',amt:-198038},
+{y:2025,m:2,d:14,cat:'Bajadas',amt:-700000},
+{y:2025,m:2,d:14,cat:'otros',amt:-27209},
+{y:2025,m:2,d:15,cat:'Ingresos',amt:997070},
+{y:2025,m:2,d:15,cat:'Panel',amt:-100000},
+{y:2025,m:2,d:15,cat:'Publicidad',amt:-297070},
+{y:2025,m:2,d:15,cat:'Bajadas',amt:-600000},
+{y:2025,m:2,d:16,cat:'Ingresos',amt:697072},
+{y:2025,m:2,d:16,cat:'Panel',amt:-100000},
+{y:2025,m:2,d:16,cat:'Publicidad',amt:-297072},
+{y:2025,m:2,d:16,cat:'Bajadas',amt:-300000},
+{y:2025,m:2,d:17,cat:'Ingresos',amt:798038},
+{y:2025,m:2,d:17,cat:'Panel',amt:-400000},
+{y:2025,m:2,d:17,cat:'Publicidad',amt:-198038},
+{y:2025,m:2,d:17,cat:'Bajadas',amt:-200000},
+{y:2025,m:2,d:18,cat:'Ingresos',amt:998038},
+{y:2025,m:2,d:18,cat:'Panel',amt:-300000},
+{y:2025,m:2,d:18,cat:'Publicidad',amt:-198038},
+{y:2025,m:2,d:18,cat:'Bajadas',amt:-500000},
+{y:2025,m:2,d:19,cat:'Ingresos',amt:898038},
+{y:2025,m:2,d:19,cat:'Panel',amt:-300000},
+{y:2025,m:2,d:19,cat:'Publicidad',amt:-198038},
+{y:2025,m:2,d:19,cat:'Bajadas',amt:-400000},
+{y:2025,m:2,d:20,cat:'Ingresos',amt:898041},
+{y:2025,m:2,d:20,cat:'Panel',amt:-200000},
+{y:2025,m:2,d:20,cat:'Publicidad',amt:-198041},
+{y:2025,m:2,d:20,cat:'Bajadas',amt:-500000},
+{y:2025,m:2,d:21,cat:'Ingresos',amt:698038},
+{y:2025,m:2,d:21,cat:'Panel',amt:-200000},
+{y:2025,m:2,d:21,cat:'Publicidad',amt:-198038},
+{y:2025,m:2,d:21,cat:'Bajadas',amt:-300000},
+{y:2025,m:2,d:22,cat:'Ingresos',amt:1197072},
+{y:2025,m:2,d:22,cat:'Panel',amt:-400000},
+{y:2025,m:2,d:22,cat:'Publicidad',amt:-297072},
+{y:2025,m:2,d:22,cat:'Bajadas',amt:-500000},
+{y:2025,m:2,d:23,cat:'Ingresos',amt:398055},
+{y:2025,m:2,d:23,cat:'Publicidad',amt:-198055},
+{y:2025,m:2,d:23,cat:'Bajadas',amt:-200000},
+{y:2025,m:2,d:24,cat:'Ingresos',amt:597150},
+{y:2025,m:2,d:24,cat:'Panel',amt:-300000},
+{y:2025,m:2,d:24,cat:'Publicidad',amt:-297150},
+{y:2025,m:2,d:25,cat:'Ingresos',amt:409071},
+{y:2025,m:2,d:25,cat:'Publicidad',amt:-198092},
+{y:2025,m:2,d:25,cat:'Bajadas',amt:-200000},
+{y:2025,m:2,d:25,cat:'otros',amt:-10979},
+{y:2025,m:2,d:26,cat:'Ingresos',amt:498038},
+{y:2025,m:2,d:26,cat:'Panel',amt:-300000},
+{y:2025,m:2,d:26,cat:'Publicidad',amt:-198038},
+{y:2025,m:2,d:27,cat:'Ingresos',amt:100000},
+{y:2025,m:2,d:27,cat:'Bajadas',amt:-100000},
+{y:2025,m:2,d:28,cat:'Ingresos',amt:1296123},
+{y:2025,m:2,d:28,cat:'Panel',amt:-600000},
+{y:2025,m:2,d:28,cat:'Publicidad',amt:-396123},
+{y:2025,m:2,d:28,cat:'Bajadas',amt:-300000},
+{y:2025,m:3,d:1,cat:'Ingresos',amt:797047},
+{y:2025,m:3,d:1,cat:'Publicidad',amt:-297047},
+{y:2025,m:3,d:1,cat:'Sueldos',amt:-500000},
+{y:2025,m:3,d:2,cat:'Ingresos',amt:498045},
+{y:2025,m:3,d:2,cat:'Panel',amt:-300000},
+{y:2025,m:3,d:2,cat:'Publicidad',amt:-198045},
+{y:2025,m:3,d:3,cat:'Ingresos',amt:798070},
+{y:2025,m:3,d:3,cat:'Panel',amt:-200000},
+{y:2025,m:3,d:3,cat:'Publicidad',amt:-198070},
+{y:2025,m:3,d:3,cat:'Bajadas',amt:-400000},
+{y:2025,m:3,d:4,cat:'Ingresos',amt:498053},
+{y:2025,m:3,d:4,cat:'Panel',amt:-100000},
+{y:2025,m:3,d:4,cat:'Publicidad',amt:-198053},
+{y:2025,m:3,d:4,cat:'Bajadas',amt:-200000},
+{y:2025,m:3,d:5,cat:'Ingresos',amt:499011},
+{y:2025,m:3,d:5,cat:'Panel',amt:-200000},
+{y:2025,m:3,d:5,cat:'Publicidad',amt:-99011},
+{y:2025,m:3,d:5,cat:'Bajadas',amt:-200000},
+{y:2025,m:3,d:6,cat:'Ingresos',amt:499017},
+{y:2025,m:3,d:6,cat:'Publicidad',amt:-99017},
+{y:2025,m:3,d:6,cat:'Bajadas',amt:-400000},
+{y:2025,m:3,d:7,cat:'Ingresos',amt:599010},
+{y:2025,m:3,d:7,cat:'Panel',amt:-300000},
+{y:2025,m:3,d:7,cat:'Publicidad',amt:-99010},
+{y:2025,m:3,d:7,cat:'Bajadas',amt:-200000},
+{y:2025,m:3,d:8,cat:'Ingresos',amt:497135},
+{y:2025,m:3,d:8,cat:'Publicidad',amt:-297135},
+{y:2025,m:3,d:8,cat:'Bajadas',amt:-200000},
+{y:2025,m:3,d:9,cat:'Ingresos',amt:1597052},
+{y:2025,m:3,d:9,cat:'Panel',amt:-600000},
+{y:2025,m:3,d:9,cat:'Publicidad',amt:-297052},
+{y:2025,m:3,d:9,cat:'Bajadas',amt:-700000},
+{y:2025,m:3,d:10,cat:'Ingresos',amt:398098},
+{y:2025,m:3,d:10,cat:'Publicidad',amt:-198098},
+{y:2025,m:3,d:10,cat:'Bajadas',amt:-200000},
+{y:2025,m:3,d:11,cat:'Ingresos',amt:599011},
+{y:2025,m:3,d:11,cat:'Panel',amt:-500000},
+{y:2025,m:3,d:11,cat:'Publicidad',amt:-99011},
+{y:2025,m:3,d:12,cat:'Ingresos',amt:998029},
+{y:2025,m:3,d:12,cat:'Panel',amt:-100000},
+{y:2025,m:3,d:12,cat:'Publicidad',amt:-198029},
+{y:2025,m:3,d:12,cat:'Bajadas',amt:-700000},
+{y:2025,m:3,d:13,cat:'Ingresos',amt:998103},
+{y:2025,m:3,d:13,cat:'Panel',amt:-400000},
+{y:2025,m:3,d:13,cat:'Publicidad',amt:-198103},
+{y:2025,m:3,d:13,cat:'Bajadas',amt:-400000},
+{y:2025,m:3,d:14,cat:'Ingresos',amt:498028},
+{y:2025,m:3,d:14,cat:'Panel',amt:-300000},
+{y:2025,m:3,d:14,cat:'Publicidad',amt:-198028},
+{y:2025,m:3,d:15,cat:'Ingresos',amt:697104},
+{y:2025,m:3,d:15,cat:'Publicidad',amt:-297104},
+{y:2025,m:3,d:15,cat:'Bajadas',amt:-400000},
+{y:2025,m:3,d:16,cat:'Ingresos',amt:811374},
+{y:2025,m:3,d:16,cat:'Panel',amt:-400000},
+{y:2025,m:3,d:16,cat:'Publicidad',amt:-198024},
+{y:2025,m:3,d:16,cat:'Bajadas',amt:-100000},
+{y:2025,m:3,d:16,cat:'otros',amt:-113350},
+{y:2025,m:3,d:17,cat:'Ingresos',amt:398172},
+{y:2025,m:3,d:17,cat:'Publicidad',amt:-198172},
+{y:2025,m:3,d:17,cat:'Bajadas',amt:-500000},
+{y:2025,m:3,d:18,cat:'Ingresos',amt:997194},
+{y:2025,m:3,d:18,cat:'Panel',amt:-100000},
+{y:2025,m:3,d:18,cat:'Publicidad',amt:-297194},
+{y:2025,m:3,d:18,cat:'Bajadas',amt:-300000},
+{y:2025,m:3,d:19,cat:'Ingresos',amt:498027},
+{y:2025,m:3,d:19,cat:'Panel',amt:-300000},
+{y:2025,m:3,d:19,cat:'Publicidad',amt:-198027},
+{y:2025,m:3,d:20,cat:'Ingresos',amt:698060},
+{y:2025,m:3,d:20,cat:'Panel',amt:-200000},
+{y:2025,m:3,d:20,cat:'Publicidad',amt:-297060},
+{y:2025,m:3,d:20,cat:'Bajadas',amt:-200000},
+{y:2025,m:3,d:21,cat:'Ingresos',amt:697025},
+{y:2025,m:3,d:21,cat:'Panel',amt:-500000},
+{y:2025,m:3,d:21,cat:'Publicidad',amt:-198025},
+{y:2025,m:3,d:22,cat:'Ingresos',amt:999011},
+{y:2025,m:3,d:22,cat:'Panel',amt:-200000},
+{y:2025,m:3,d:22,cat:'Publicidad',amt:-99011},
+{y:2025,m:3,d:22,cat:'Bajadas',amt:-700000},
+{y:2025,m:3,d:23,cat:'Ingresos',amt:799019},
+{y:2025,m:3,d:23,cat:'Panel',amt:-400000},
+{y:2025,m:3,d:23,cat:'Publicidad',amt:-99019},
+{y:2025,m:3,d:23,cat:'Bajadas',amt:-300000},
+{y:2025,m:3,d:24,cat:'Ingresos',amt:499020},
+{y:2025,m:3,d:24,cat:'Publicidad',amt:-99020},
+{y:2025,m:3,d:24,cat:'Bajadas',amt:-400000},
+{y:2025,m:3,d:25,cat:'Ingresos',amt:499010},
+{y:2025,m:3,d:25,cat:'Panel',amt:-300000},
+{y:2025,m:3,d:25,cat:'Publicidad',amt:-99010},
+{y:2025,m:3,d:25,cat:'Bajadas',amt:-100000},
+{y:2025,m:3,d:26,cat:'Ingresos',amt:428307},
+{y:2025,m:3,d:26,cat:'Publicidad',amt:-99018},
+{y:2025,m:3,d:26,cat:'Bajadas',amt:-300000},
+{y:2025,m:3,d:26,cat:'otros',amt:-29288},
+{y:2025,m:3,d:27,cat:'Ingresos',amt:454811},
+{y:2025,m:3,d:27,cat:'Panel',amt:-300000},
+{y:2025,m:3,d:27,cat:'Publicidad',amt:-99011},
+{y:2025,m:3,d:27,cat:'otros',amt:-55800},
+{y:2025,m:3,d:28,cat:'Ingresos',amt:1299010},
+{y:2025,m:3,d:28,cat:'Panel',amt:-300000},
+{y:2025,m:3,d:28,cat:'Publicidad',amt:-99010},
+{y:2025,m:3,d:28,cat:'Bajadas',amt:-900000},
+{y:2025,m:3,d:29,cat:'Ingresos',amt:698023},
+{y:2025,m:3,d:29,cat:'Panel',amt:-100000},
+{y:2025,m:3,d:29,cat:'Publicidad',amt:-198023},
+{y:2025,m:3,d:29,cat:'Bajadas',amt:-400000},
+{y:2025,m:3,d:30,cat:'Ingresos',amt:799012},
+{y:2025,m:3,d:30,cat:'Panel',amt:-200000},
+{y:2025,m:3,d:30,cat:'Publicidad',amt:-99012},
+{y:2025,m:3,d:30,cat:'Bajadas',amt:-500000},
+{y:2025,m:3,d:31,cat:'Ingresos',amt:499013},
+{y:2025,m:3,d:31,cat:'Panel',amt:-200000},
+{y:2025,m:3,d:31,cat:'Publicidad',amt:-99013},
+{y:2025,m:3,d:31,cat:'Bajadas',amt:-200000},
+{y:2025,m:4,d:1,cat:'Ingresos',amt:499014},
+{y:2025,m:4,d:1,cat:'Panel',amt:-200000},
+{y:2025,m:4,d:1,cat:'Publicidad',amt:-99014},
+{y:2025,m:4,d:1,cat:'Sueldos',amt:-200000},
+{y:2025,m:4,d:2,cat:'Ingresos',amt:299018},
+{y:2025,m:4,d:2,cat:'Publicidad',amt:-99018},
+{y:2025,m:4,d:2,cat:'Sueldos',amt:-200000},
+{y:2025,m:4,d:3,cat:'Ingresos',amt:199030},
+{y:2025,m:4,d:3,cat:'Publicidad',amt:-99030},
+{y:2025,m:4,d:3,cat:'Sueldos',amt:-100000},
+{y:2025,m:4,d:4,cat:'Ingresos',amt:499020},
+{y:2025,m:4,d:4,cat:'Panel',amt:-300000},
+{y:2025,m:4,d:4,cat:'Publicidad',amt:-99020},
+{y:2025,m:4,d:4,cat:'Bajadas',amt:-100000},
+{y:2025,m:4,d:5,cat:'Ingresos',amt:615000},
+{y:2025,m:4,d:5,cat:'Bajadas',amt:-600000},
+{y:2025,m:4,d:5,cat:'otros',amt:-15000},
+{y:2025,m:4,d:6,cat:'Ingresos',amt:100000},
+{y:2025,m:4,d:6,cat:'Bajadas',amt:-100000},
+{y:2025,m:4,d:7,cat:'Ingresos',amt:500000},
+{y:2025,m:4,d:7,cat:'Panel',amt:-300000},
+{y:2025,m:4,d:7,cat:'Bajadas',amt:-200000},
+{y:2025,m:4,d:8,cat:'Ingresos',amt:800000},
+{y:2025,m:4,d:8,cat:'Panel',amt:-100000},
+{y:2025,m:4,d:8,cat:'Bajadas',amt:-700000},
+{y:2025,m:4,d:9,cat:'Ingresos',amt:900000},
+{y:2025,m:4,d:9,cat:'Panel',amt:-400000},
+{y:2025,m:4,d:9,cat:'Bajadas',amt:-500000},
+{y:2025,m:4,d:10,cat:'Ingresos',amt:300000},
+{y:2025,m:4,d:10,cat:'Panel',amt:-300000},
+{y:2025,m:4,d:11,cat:'Ingresos',amt:199020},
+{y:2025,m:4,d:11,cat:'Publicidad',amt:-99020},
+{y:2025,m:4,d:11,cat:'Bajadas',amt:-100000},
+{y:2025,m:4,d:12,cat:'Ingresos',amt:1000000},
+{y:2025,m:4,d:12,cat:'Panel',amt:-200000},
+{y:2025,m:4,d:12,cat:'Bajadas',amt:-800000},
+{y:2025,m:4,d:13,cat:'Ingresos',amt:499030},
+{y:2025,m:4,d:13,cat:'Publicidad',amt:-99030},
+{y:2025,m:4,d:13,cat:'Bajadas',amt:-400000},
+{y:2025,m:4,d:14,cat:'Ingresos',amt:400000},
+{y:2025,m:4,d:14,cat:'Panel',amt:-400000},
+{y:2025,m:4,d:15,cat:'Ingresos',amt:399030},
+{y:2025,m:4,d:15,cat:'Publicidad',amt:-99030},
+{y:2025,m:4,d:15,cat:'Bajadas',amt:-300000},
+{y:2025,m:4,d:16,cat:'Ingresos',amt:399050},
+{y:2025,m:4,d:16,cat:'Panel',amt:-300000},
+{y:2025,m:4,d:16,cat:'Publicidad',amt:-99050},
+{y:2025,m:4,d:17,cat:'Ingresos',amt:329227},
+{y:2025,m:4,d:17,cat:'Publicidad',amt:-100000},
+{y:2025,m:4,d:17,cat:'Bajadas',amt:-200000},
+{y:2025,m:4,d:17,cat:'otros',amt:-29227},
+{y:2025,m:4,d:18,cat:'Ingresos',amt:799020},
+{y:2025,m:4,d:18,cat:'Panel',amt:-200000},
+{y:2025,m:4,d:18,cat:'Publicidad',amt:-99020},
+{y:2025,m:4,d:18,cat:'Bajadas',amt:-500000},
+{y:2025,m:4,d:19,cat:'Ingresos',amt:399019},
+{y:2025,m:4,d:19,cat:'Publicidad',amt:-99019},
+{y:2025,m:4,d:19,cat:'Bajadas',amt:-300000},
+{y:2025,m:4,d:20,cat:'Ingresos',amt:399017},
+{y:2025,m:4,d:20,cat:'Panel',amt:-300000},
+{y:2025,m:4,d:20,cat:'Publicidad',amt:-99017},
+{y:2025,m:4,d:21,cat:'Ingresos',amt:100000},
+{y:2025,m:4,d:21,cat:'Bajadas',amt:-100000},
+{y:2025,m:4,d:22,cat:'Ingresos',amt:299020},
+{y:2025,m:4,d:22,cat:'Publicidad',amt:-99020},
+{y:2025,m:4,d:22,cat:'Bajadas',amt:-200000},
+{y:2025,m:4,d:23,cat:'Ingresos',amt:610040},
+{y:2025,m:4,d:23,cat:'Panel',amt:-300000},
+{y:2025,m:4,d:23,cat:'Publicidad',amt:-99040},
+{y:2025,m:4,d:23,cat:'Bajadas',amt:-200000},
+{y:2025,m:4,d:23,cat:'otros',amt:-11000},
+{y:2025,m:4,d:24,cat:'Ingresos',amt:900000},
+{y:2025,m:4,d:24,cat:'Panel',amt:-300000},
+{y:2025,m:4,d:24,cat:'Bajadas',amt:-600000},
+{y:2025,m:4,d:25,cat:'Ingresos',amt:199015},
+{y:2025,m:4,d:25,cat:'Publicidad',amt:-99015},
+{y:2025,m:4,d:25,cat:'Bajadas',amt:-100000},
+{y:2025,m:4,d:26,cat:'Ingresos',amt:499016},
+{y:2025,m:4,d:26,cat:'Panel',amt:-300000},
+{y:2025,m:4,d:26,cat:'Publicidad',amt:-99016},
+{y:2025,m:4,d:26,cat:'Bajadas',amt:-100000},
+{y:2025,m:4,d:27,cat:'Ingresos',amt:499011},
+{y:2025,m:4,d:27,cat:'Publicidad',amt:-99011},
+{y:2025,m:4,d:27,cat:'Bajadas',amt:-400000},
+{y:2025,m:4,d:28,cat:'Ingresos',amt:498031},
+{y:2025,m:4,d:28,cat:'Publicidad',amt:-198031},
+{y:2025,m:4,d:28,cat:'Bajadas',amt:-300000},
+{y:2025,m:4,d:29,cat:'Ingresos',amt:400000},
+{y:2025,m:4,d:29,cat:'Panel',amt:-400000},
+{y:2025,m:4,d:30,cat:'Ingresos',amt:698086},
+{y:2025,m:4,d:30,cat:'Panel',amt:-200000},
+{y:2025,m:4,d:30,cat:'Publicidad',amt:-198086},
+{y:2025,m:4,d:30,cat:'Bajadas',amt:-300000},
+{y:2025,m:5,d:1,cat:'Ingresos',amt:698039},
+{y:2025,m:5,d:1,cat:'Publicidad',amt:-198039},
+{y:2025,m:5,d:1,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:1,cat:'Bajadas',amt:-200000},
+{y:2025,m:5,d:2,cat:'Ingresos',amt:695103},
+{y:2025,m:5,d:2,cat:'Publicidad',amt:-495103},
+{y:2025,m:5,d:2,cat:'Bajadas',amt:-100000},
+{y:2025,m:5,d:2,cat:'Sueldos',amt:-100000},
+{y:2025,m:5,d:3,cat:'Ingresos',amt:99040},
+{y:2025,m:5,d:3,cat:'Publicidad',amt:-99040},
+{y:2025,m:5,d:4,cat:'Ingresos',amt:200000},
+{y:2025,m:5,d:4,cat:'Bajadas',amt:-200000},
+{y:2025,m:5,d:5,cat:'Ingresos',amt:599010},
+{y:2025,m:5,d:5,cat:'Publicidad',amt:-99010},
+{y:2025,m:5,d:5,cat:'Panel',amt:-400000},
+{y:2025,m:5,d:5,cat:'Bajadas',amt:-100000},
+{y:2025,m:5,d:6,cat:'Ingresos',amt:200000},
+{y:2025,m:5,d:6,cat:'Bajadas',amt:-200000},
+{y:2025,m:5,d:7,cat:'Ingresos',amt:299010},
+{y:2025,m:5,d:7,cat:'Publicidad',amt:-99010},
+{y:2025,m:5,d:7,cat:'Panel',amt:-100000},
+{y:2025,m:5,d:7,cat:'Bajadas',amt:-100000},
+{y:2025,m:5,d:8,cat:'Ingresos',amt:899015},
+{y:2025,m:5,d:8,cat:'Publicidad',amt:-99015},
+{y:2025,m:5,d:8,cat:'Panel',amt:-200000},
+{y:2025,m:5,d:8,cat:'Bajadas',amt:-600000},
+{y:2025,m:5,d:9,cat:'Ingresos',amt:700000},
+{y:2025,m:5,d:9,cat:'Publicidad',amt:-100000},
+{y:2025,m:5,d:9,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:9,cat:'Bajadas',amt:-300000},
+{y:2025,m:5,d:10,cat:'Ingresos',amt:1015098},
+{y:2025,m:5,d:10,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:10,cat:'Bajadas',amt:-700000},
+{y:2025,m:5,d:10,cat:'otros',amt:-15098},
+{y:2025,m:5,d:11,cat:'Ingresos',amt:799012},
+{y:2025,m:5,d:11,cat:'Publicidad',amt:-299012},
+{y:2025,m:5,d:11,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:11,cat:'Bajadas',amt:-200000},
+{y:2025,m:5,d:12,cat:'Ingresos',amt:698030},
+{y:2025,m:5,d:12,cat:'Publicidad',amt:-198030},
+{y:2025,m:5,d:12,cat:'Bajadas',amt:-500000},
+{y:2025,m:5,d:13,cat:'Ingresos',amt:799080},
+{y:2025,m:5,d:13,cat:'Publicidad',amt:-99080},
+{y:2025,m:5,d:13,cat:'Panel',amt:-400000},
+{y:2025,m:5,d:13,cat:'Bajadas',amt:-300000},
+{y:2025,m:5,d:14,cat:'Ingresos',amt:700000},
+{y:2025,m:5,d:14,cat:'Publicidad',amt:-100000},
+{y:2025,m:5,d:14,cat:'Bajadas',amt:-600000},
+{y:2025,m:5,d:15,cat:'Ingresos',amt:300000},
+{y:2025,m:5,d:15,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:16,cat:'Ingresos',amt:1099050},
+{y:2025,m:5,d:16,cat:'Publicidad',amt:-199050},
+{y:2025,m:5,d:16,cat:'Panel',amt:-400000},
+{y:2025,m:5,d:16,cat:'Bajadas',amt:-500000},
+{y:2025,m:5,d:17,cat:'Ingresos',amt:399010},
+{y:2025,m:5,d:17,cat:'Publicidad',amt:-99010},
+{y:2025,m:5,d:17,cat:'Bajadas',amt:-300000},
+{y:2025,m:5,d:18,cat:'Ingresos',amt:199023},
+{y:2025,m:5,d:18,cat:'Publicidad',amt:-99023},
+{y:2025,m:5,d:18,cat:'Bajadas',amt:-100000},
+{y:2025,m:5,d:19,cat:'Ingresos',amt:400000},
+{y:2025,m:5,d:19,cat:'Panel',amt:-400000},
+{y:2025,m:5,d:20,cat:'Ingresos',amt:1030000},
+{y:2025,m:5,d:20,cat:'Panel',amt:-200000},
+{y:2025,m:5,d:20,cat:'Bajadas',amt:-800000},
+{y:2025,m:5,d:20,cat:'otros',amt:-30000},
+{y:2025,m:5,d:21,cat:'Ingresos',amt:899017},
+{y:2025,m:5,d:21,cat:'Publicidad',amt:-99017},
+{y:2025,m:5,d:21,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:21,cat:'Bajadas',amt:-500000},
+{y:2025,m:5,d:22,cat:'Ingresos',amt:498016},
+{y:2025,m:5,d:22,cat:'Publicidad',amt:-298016},
+{y:2025,m:5,d:22,cat:'Bajadas',amt:-200000},
+{y:2025,m:5,d:23,cat:'Ingresos',amt:1100000},
+{y:2025,m:5,d:23,cat:'Publicidad',amt:-100000},
+{y:2025,m:5,d:23,cat:'Panel',amt:-400000},
+{y:2025,m:5,d:23,cat:'Bajadas',amt:-600000},
+{y:2025,m:5,d:24,cat:'Ingresos',amt:700000},
+{y:2025,m:5,d:24,cat:'Bajadas',amt:-400000},
+{y:2025,m:5,d:24,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:26,cat:'Ingresos',amt:300000},
+{y:2025,m:5,d:26,cat:'Bajadas',amt:-200000},
+{y:2025,m:5,d:26,cat:'Publicidad',amt:-100000},
+{y:2025,m:5,d:27,cat:'Ingresos',amt:300000},
+{y:2025,m:5,d:27,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:28,cat:'Ingresos',amt:599074},
+{y:2025,m:5,d:28,cat:'Publicidad',amt:-99074},
+{y:2025,m:5,d:28,cat:'Bajadas',amt:-500000},
+{y:2025,m:5,d:29,cat:'Ingresos',amt:400000},
+{y:2025,m:5,d:29,cat:'Publicidad',amt:-100000},
+{y:2025,m:5,d:29,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:30,cat:'Ingresos',amt:700000},
+{y:2025,m:5,d:30,cat:'Bajadas',amt:-700000},
+{y:2025,m:5,d:31,cat:'Ingresos',amt:400000},
+{y:2025,m:5,d:31,cat:'Panel',amt:-300000},
+{y:2025,m:5,d:31,cat:'Bajadas',amt:-100000},
+{y:2025,m:6,d:1,cat:'Ingresos',amt:400000},
+{y:2025,m:6,d:1,cat:'Bajadas',amt:-300000},
+{y:2025,m:6,d:1,cat:'Sueldos',amt:-100000},
+{y:2025,m:6,d:2,cat:'Ingresos',amt:400000},
+{y:2025,m:6,d:2,cat:'Panel',amt:-300000},
+{y:2025,m:6,d:2,cat:'Sueldos',amt:-100000},
+{y:2025,m:6,d:3,cat:'Ingresos',amt:500000},
+{y:2025,m:6,d:3,cat:'Publicidad',amt:-500000},
+{y:2025,m:5,d:31,cat:'Bajadas',amt:3375000},
+{y:2025,m:5,d:31,cat:'otros',amt:-300000},
+{y:2025,m:5,d:31,cat:'Sueldos',amt:-3075000},
+{y:2025,m:6,d:4,cat:'Ingresos',amt:300000},
+{y:2025,m:6,d:4,cat:'Publicidad',amt:-100000},
+{y:2025,m:6,d:4,cat:'Panel',amt:-200000},
+{y:2025,m:6,d:5,cat:'Ingresos',amt:1400000},
+{y:2025,m:6,d:5,cat:'Publicidad',amt:-100000},
+{y:2025,m:6,d:5,cat:'Panel',amt:-600000},
+{y:2025,m:6,d:5,cat:'Bajadas',amt:-700000},
+{y:2025,m:6,d:6,cat:'Ingresos',amt:400000},
+{y:2025,m:6,d:6,cat:'Publicidad',amt:-400000},
+{y:2025,m:6,d:7,cat:'Ingresos',amt:500000},
+{y:2025,m:6,d:7,cat:'Publicidad',amt:-200000},
+{y:2025,m:6,d:7,cat:'Panel',amt:-300000},
+{y:2025,m:6,d:8,cat:'Ingresos',amt:300000},
+{y:2025,m:6,d:8,cat:'Publicidad',amt:-300000},
+{y:2025,m:6,d:9,cat:'Ingresos',amt:700000},
+{y:2025,m:6,d:9,cat:'Publicidad',amt:-400000},
+{y:2025,m:6,d:9,cat:'Panel',amt:-300000},
+{y:2025,m:6,d:10,cat:'Ingresos',amt:300000},
+{y:2025,m:6,d:10,cat:'Publicidad',amt:-200000},
+{y:2025,m:6,d:10,cat:'Sueldos',amt:-100000},
+{y:2025,m:6,d:11,cat:'Ingresos',amt:558500},
+{y:2025,m:6,d:11,cat:'Panel',amt:-300000},
+{y:2025,m:6,d:11,cat:'otros',amt:-58500},
+{y:2025,m:6,d:11,cat:'Publicidad',amt:-200000},
+{y:2025,m:6,d:12,cat:'Ingresos',amt:500000},
+{y:2025,m:6,d:12,cat:'Publicidad',amt:-100000},
+{y:2025,m:6,d:12,cat:'Panel',amt:-200000},
+{y:2025,m:6,d:12,cat:'Bajadas',amt:-200000},
+{y:2025,m:6,d:13,cat:'Ingresos',amt:300000},
+{y:2025,m:6,d:13,cat:'Bajadas',amt:-300000},
+{y:2025,m:6,d:14,cat:'Ingresos',amt:600000},
+{y:2025,m:6,d:14,cat:'Panel',amt:-400000},
+{y:2025,m:6,d:14,cat:'Bajadas',amt:-100000},
+{y:2025,m:6,d:14,cat:'Sueldos',amt:-100000},
+{y:2025,m:6,d:15,cat:'Ingresos',amt:900000},
+{y:2025,m:6,d:15,cat:'Bajadas',amt:-900000},
+{y:2025,m:6,d:16,cat:'Ingresos',amt:600000},
+{y:2025,m:6,d:16,cat:'Panel',amt:-300000},
+{y:2025,m:6,d:16,cat:'Bajadas',amt:-300000},
+{y:2025,m:6,d:17,cat:'Ingresos',amt:100000},
+{y:2025,m:6,d:17,cat:'Bajadas',amt:-100000},
+{y:2025,m:6,d:18,cat:'Ingresos',amt:800000},
+{y:2025,m:6,d:18,cat:'Panel',amt:-400000},
+{y:2025,m:6,d:18,cat:'Bajadas',amt:-400000},
+{y:2025,m:6,d:19,cat:'Ingresos',amt:400000},
+{y:2025,m:6,d:19,cat:'Panel',amt:-200000},
+{y:2025,m:6,d:19,cat:'Bajadas',amt:-200000},
+{y:2025,m:6,d:20,cat:'Ingresos',amt:400000},
+{y:2025,m:6,d:20,cat:'Bajadas',amt:-400000},
+{y:2025,m:6,d:21,cat:'Ingresos',amt:300000},
+{y:2025,m:6,d:21,cat:'Bajadas',amt:-300000},
+{y:2025,m:6,d:22,cat:'Ingresos',amt:600000},
+{y:2025,m:6,d:22,cat:'Panel',amt:-300000},
+{y:2025,m:6,d:22,cat:'Bajadas',amt:-300000},
+{y:2025,m:6,d:23,cat:'Ingresos',amt:300000},
+{y:2025,m:6,d:23,cat:'Bajadas',amt:-300000},
+{y:2025,m:6,d:24,cat:'Ingresos',amt:600000},
+{y:2025,m:6,d:24,cat:'Panel',amt:-400000},
+{y:2025,m:6,d:24,cat:'Bajadas',amt:-200000},
+{y:2025,m:6,d:25,cat:'Ingresos',amt:500000},
+{y:2025,m:6,d:25,cat:'Bajadas',amt:-400000},
+{y:2025,m:6,d:25,cat:'Sueldos',amt:-100000},
+{y:2025,m:6,d:26,cat:'Ingresos',amt:600000},
+{y:2025,m:6,d:26,cat:'Panel',amt:-200000},
+{y:2025,m:6,d:26,cat:'Bajadas',amt:-400000},
+{y:2025,m:6,d:27,cat:'Ingresos',amt:800000},
+{y:2025,m:6,d:27,cat:'Panel',amt:-400000},
+{y:2025,m:6,d:27,cat:'Bajadas',amt:-400000},
+{y:2025,m:6,d:28,cat:'Ingresos',amt:900000},
+{y:2025,m:6,d:28,cat:'Panel',amt:-300000},
+{y:2025,m:6,d:28,cat:'Bajadas',amt:-600000},
+{y:2025,m:6,d:29,cat:'Ingresos',amt:600000},
+{y:2025,m:6,d:29,cat:'Bajadas',amt:-600000},
+{y:2025,m:6,d:30,cat:'Ingresos',amt:831413},
+{y:2025,m:6,d:30,cat:'Panel',amt:-300000},
+{y:2025,m:6,d:30,cat:'Bajadas',amt:-500000},
+{y:2025,m:6,d:30,cat:'otros',amt:-31413},
+{y:2025,m:7,d:1,cat:'Ingresos',amt:800000},
+{y:2025,m:7,d:1,cat:'Sueldos',amt:-400000},
+{y:2025,m:7,d:1,cat:'Panel',amt:-300000},
+{y:2025,m:7,d:1,cat:'Publicidad',amt:-100000},
+{y:2025,m:7,d:2,cat:'Ingresos',amt:700000},
+{y:2025,m:7,d:2,cat:'Panel',amt:-300000},
+{y:2025,m:7,d:2,cat:'Bajadas',amt:-400000},
+{y:2025,m:7,d:3,cat:'Ingresos',amt:600000},
+{y:2025,m:7,d:3,cat:'Bajadas',amt:-400000},
+{y:2025,m:7,d:3,cat:'Publicidad',amt:-200000},
+{y:2025,m:7,d:4,cat:'Ingresos',amt:600000},
+{y:2025,m:7,d:4,cat:'Panel',amt:-300000},
+{y:2025,m:7,d:4,cat:'Bajadas',amt:-300000},
+{y:2025,m:7,d:5,cat:'Ingresos',amt:480000},
+{y:2025,m:7,d:5,cat:'Bajadas',amt:-100000},
+{y:2025,m:7,d:5,cat:'Publicidad',amt:-380000},
+{y:2025,m:7,d:6,cat:'Ingresos',amt:600000},
+{y:2025,m:7,d:6,cat:'Panel',amt:-300000},
+{y:2025,m:7,d:6,cat:'Bajadas',amt:-200000},
+{y:2025,m:7,d:6,cat:'Publicidad',amt:-100000},
+{y:2025,m:7,d:7,cat:'Ingresos',amt:150000},
+{y:2025,m:7,d:7,cat:'Bajadas',amt:-100000},
+{y:2025,m:7,d:7,cat:'Publicidad',amt:-50000},
+{y:2025,m:7,d:8,cat:'Ingresos',amt:300000},
+{y:2025,m:7,d:8,cat:'Bajadas',amt:-200000},
+{y:2025,m:7,d:8,cat:'Publicidad',amt:-100000},
+{y:2025,m:7,d:9,cat:'Ingresos',amt:550000},
+{y:2025,m:7,d:9,cat:'Panel',amt:-200000},
+{y:2025,m:7,d:9,cat:'Bajadas',amt:-300000},
+{y:2025,m:7,d:9,cat:'Publicidad',amt:-50000},
+{y:2025,m:7,d:11,cat:'Ingresos',amt:500000},
+{y:2025,m:7,d:11,cat:'Bajadas',amt:-300000},
+{y:2025,m:7,d:11,cat:'Publicidad',amt:-150000},
+{y:2025,m:7,d:11,cat:'otros',amt:-50000},
+{y:2025,m:7,d:12,cat:'Ingresos',amt:600000},
+{y:2025,m:7,d:12,cat:'Panel',amt:-400000},
+{y:2025,m:7,d:12,cat:'Publicidad',amt:-200000},
+{y:2025,m:7,d:13,cat:'Ingresos',amt:750000},
+{y:2025,m:7,d:13,cat:'Bajadas',amt:-600000},
+{y:2025,m:7,d:13,cat:'Publicidad',amt:-150000},
+{y:2025,m:7,d:14,cat:'Ingresos',amt:500000},
+{y:2025,m:7,d:14,cat:'Panel',amt:-200000},
+{y:2025,m:7,d:14,cat:'Bajadas',amt:-200000},
+{y:2025,m:7,d:14,cat:'Publicidad',amt:-100000},
+{y:2025,m:7,d:15,cat:'Ingresos',amt:600000},
+{y:2025,m:7,d:15,cat:'Panel',amt:-200000},
+{y:2025,m:7,d:15,cat:'Bajadas',amt:-400000},
+{y:2025,m:7,d:16,cat:'Ingresos',amt:500000},
+{y:2025,m:7,d:16,cat:'Panel',amt:-200000},
+{y:2025,m:7,d:16,cat:'Bajadas',amt:-300000},
+{y:2025,m:7,d:17,cat:'Ingresos',amt:350000},
+{y:2025,m:7,d:17,cat:'Bajadas',amt:-200000},
+{y:2025,m:7,d:17,cat:'Publicidad',amt:-150000},
+{y:2025,m:7,d:18,cat:'Ingresos',amt:1000000},
+{y:2025,m:7,d:18,cat:'Panel',amt:-300000},
+{y:2025,m:7,d:18,cat:'Bajadas',amt:-600000},
+{y:2025,m:7,d:18,cat:'Publicidad',amt:-100000},
+{y:2025,m:7,d:19,cat:'Ingresos',amt:900000},
+{y:2025,m:7,d:19,cat:'Panel',amt:-300000},
+{y:2025,m:7,d:19,cat:'Bajadas',amt:-400000},
+{y:2025,m:7,d:19,cat:'Publicidad',amt:-200000},
+{y:2025,m:7,d:20,cat:'Ingresos',amt:700000},
+{y:2025,m:7,d:20,cat:'Bajadas',amt:-500000},
+{y:2025,m:7,d:20,cat:'Publicidad',amt:-200000},
+{y:2025,m:7,d:21,cat:'Ingresos',amt:500000},
+{y:2025,m:7,d:21,cat:'Panel',amt:-400000},
+{y:2025,m:7,d:21,cat:'Bajadas',amt:-100000},
+{y:2025,m:7,d:22,cat:'Ingresos',amt:500000},
+{y:2025,m:7,d:22,cat:'Bajadas',amt:-400000},
+{y:2025,m:7,d:22,cat:'Sueldos',amt:-100000},
+{y:2025,m:7,d:23,cat:'Ingresos',amt:650000},
+{y:2025,m:7,d:23,cat:'Panel',amt:-200000},
+{y:2025,m:7,d:23,cat:'Bajadas',amt:-400000},
+{y:2025,m:7,d:23,cat:'Publicidad',amt:-50000},
+{y:2025,m:7,d:24,cat:'Ingresos',amt:200000},
+{y:2025,m:7,d:24,cat:'Bajadas',amt:-100000},
+{y:2025,m:7,d:24,cat:'Publicidad',amt:-100000},
+{y:2025,m:7,d:25,cat:'Ingresos',amt:350000},
+{y:2025,m:7,d:25,cat:'Panel',amt:-100000},
+{y:2025,m:7,d:25,cat:'Bajadas',amt:-100000},
+{y:2025,m:7,d:25,cat:'Publicidad',amt:-150000},
+{y:2025,m:7,d:26,cat:'Ingresos',amt:1000000},
+{y:2025,m:7,d:26,cat:'Panel',amt:-500000},
+{y:2025,m:7,d:26,cat:'Bajadas',amt:-400000},
+{y:2025,m:7,d:26,cat:'Publicidad',amt:-100000},
+{y:2025,m:7,d:27,cat:'Ingresos',amt:650000},
+{y:2025,m:7,d:27,cat:'Panel',amt:-300000},
+{y:2025,m:7,d:27,cat:'Bajadas',amt:-200000},
+{y:2025,m:7,d:27,cat:'Publicidad',amt:-150000},
+{y:2025,m:7,d:28,cat:'Ingresos',amt:150000},
+{y:2025,m:7,d:28,cat:'Publicidad',amt:-150000},
+{y:2025,m:7,d:29,cat:'Ingresos',amt:600000},
+{y:2025,m:7,d:29,cat:'Panel',amt:-100000},
+{y:2025,m:7,d:29,cat:'Bajadas',amt:-400000},
+{y:2025,m:7,d:29,cat:'Publicidad',amt:-100000},
+{y:2025,m:7,d:30,cat:'Ingresos',amt:500000},
+{y:2025,m:7,d:30,cat:'Panel',amt:-300000},
+{y:2025,m:7,d:30,cat:'Bajadas',amt:-200000},
+{y:2025,m:7,d:31,cat:'Ingresos',amt:400000},
+{y:2025,m:7,d:31,cat:'Bajadas',amt:-300000},
+{y:2025,m:7,d:31,cat:'Publicidad',amt:-100000},
+{y:2025,m:8,d:1,cat:'Ingresos',amt:600000},
+{y:2025,m:8,d:1,cat:'Panel',amt:-300000},
+{y:2025,m:8,d:1,cat:'Sueldos',amt:-300000},
+{y:2025,m:6,d:30,cat:'Bajadas',amt:5383600},
+{y:2025,m:6,d:30,cat:'otros',amt:-300000},
+{y:2025,m:6,d:30,cat:'Sueldos',amt:-2826000},
+{y:2025,m:8,d:2,cat:'Ingresos',amt:600000},
+{y:2025,m:8,d:2,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:2,cat:'Sueldos',amt:-400000},
+{y:2025,m:8,d:3,cat:'Ingresos',amt:600000},
+{y:2025,m:8,d:3,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:3,cat:'Sueldos',amt:-400000},
+{y:2025,m:8,d:4,cat:'Ingresos',amt:500000},
+{y:2025,m:8,d:4,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:4,cat:'Bajadas',amt:-100000},
+{y:2025,m:8,d:4,cat:'Sueldos',amt:-200000},
+{y:2025,m:7,d:31,cat:'Bajadas',amt:2767000},
+{y:2025,m:7,d:31,cat:'otros',amt:-300000},
+{y:2025,m:7,d:31,cat:'Sueldos',amt:-2467000},
+{y:2025,m:8,d:5,cat:'Ingresos',amt:400000},
+{y:2025,m:8,d:5,cat:'Bajadas',amt:-300000},
+{y:2025,m:8,d:5,cat:'Publicidad',amt:-100000},
+{y:2025,m:8,d:6,cat:'Ingresos',amt:500000},
+{y:2025,m:8,d:6,cat:'Panel',amt:-100000},
+{y:2025,m:8,d:6,cat:'Bajadas',amt:-400000},
+{y:2025,m:8,d:7,cat:'Ingresos',amt:700000},
+{y:2025,m:8,d:7,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:7,cat:'Bajadas',amt:-300000},
+{y:2025,m:8,d:7,cat:'Publicidad',amt:-200000},
+{y:2025,m:8,d:8,cat:'Ingresos',amt:700000},
+{y:2025,m:8,d:8,cat:'Panel',amt:-300000},
+{y:2025,m:8,d:8,cat:'Bajadas',amt:-200000},
+{y:2025,m:8,d:8,cat:'Publicidad',amt:-200000},
+{y:2025,m:8,d:9,cat:'Ingresos',amt:600000},
+{y:2025,m:8,d:9,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:9,cat:'Bajadas',amt:-400000},
+{y:2025,m:8,d:10,cat:'Ingresos',amt:500000},
+{y:2025,m:8,d:10,cat:'Bajadas',amt:-300000},
+{y:2025,m:8,d:10,cat:'Publicidad',amt:-200000},
+{y:2025,m:8,d:11,cat:'Ingresos',amt:600000},
+{y:2025,m:8,d:11,cat:'Panel',amt:-400000},
+{y:2025,m:8,d:11,cat:'Bajadas',amt:-200000},
+{y:2025,m:8,d:12,cat:'Ingresos',amt:400000},
+{y:2025,m:8,d:12,cat:'Bajadas',amt:-300000},
+{y:2025,m:8,d:12,cat:'Publicidad',amt:-100000},
+{y:2025,m:8,d:13,cat:'Ingresos',amt:500000},
+{y:2025,m:8,d:13,cat:'Panel',amt:-300000},
+{y:2025,m:8,d:13,cat:'Bajadas',amt:-200000},
+{y:2025,m:8,d:14,cat:'Ingresos',amt:700000},
+{y:2025,m:8,d:14,cat:'Panel',amt:-100000},
+{y:2025,m:8,d:14,cat:'Bajadas',amt:-400000},
+{y:2025,m:8,d:14,cat:'Publicidad',amt:-200000},
+{y:2025,m:8,d:15,cat:'Ingresos',amt:700000},
+{y:2025,m:8,d:15,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:15,cat:'Bajadas',amt:-500000},
+{y:2025,m:8,d:16,cat:'Ingresos',amt:200000},
+{y:2025,m:8,d:16,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:17,cat:'Ingresos',amt:900000},
+{y:2025,m:8,d:17,cat:'Panel',amt:-100000},
+{y:2025,m:8,d:17,cat:'Bajadas',amt:-500000},
+{y:2025,m:8,d:17,cat:'Publicidad',amt:-300000},
+{y:2025,m:8,d:18,cat:'Ingresos',amt:400000},
+{y:2025,m:8,d:18,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:18,cat:'Bajadas',amt:-200000},
+{y:2025,m:8,d:19,cat:'Ingresos',amt:700000},
+{y:2025,m:8,d:19,cat:'Panel',amt:-100000},
+{y:2025,m:8,d:19,cat:'Bajadas',amt:-600000},
+{y:2025,m:8,d:20,cat:'Ingresos',amt:700000},
+{y:2025,m:8,d:20,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:20,cat:'Bajadas',amt:-400000},
+{y:2025,m:8,d:20,cat:'Publicidad',amt:-100000},
+{y:2025,m:8,d:21,cat:'Ingresos',amt:700000},
+{y:2025,m:8,d:21,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:21,cat:'Bajadas',amt:-500000},
+{y:2025,m:8,d:22,cat:'Ingresos',amt:1100000},
+{y:2025,m:8,d:22,cat:'Panel',amt:-400000},
+{y:2025,m:8,d:22,cat:'Bajadas',amt:-700000},
+{y:2025,m:8,d:23,cat:'Ingresos',amt:700000},
+{y:2025,m:8,d:23,cat:'Bajadas',amt:-700000},
+{y:2025,m:8,d:24,cat:'Ingresos',amt:400000},
+{y:2025,m:8,d:24,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:24,cat:'Bajadas',amt:-200000},
+{y:2025,m:8,d:25,cat:'Ingresos',amt:600000},
+{y:2025,m:8,d:25,cat:'Panel',amt:-100000},
+{y:2025,m:8,d:25,cat:'Bajadas',amt:-500000},
+{y:2025,m:8,d:26,cat:'Ingresos',amt:200000},
+{y:2025,m:8,d:26,cat:'Bajadas',amt:-200000},
+{y:2025,m:8,d:27,cat:'Ingresos',amt:600000},
+{y:2025,m:8,d:27,cat:'Panel',amt:-300000},
+{y:2025,m:8,d:27,cat:'Bajadas',amt:-300000},
+{y:2025,m:8,d:28,cat:'Ingresos',amt:433077},
+{y:2025,m:8,d:28,cat:'Panel',amt:-300000},
+{y:2025,m:8,d:28,cat:'Bajadas',amt:-100000},
+{y:2025,m:8,d:28,cat:'otros',amt:-33077},
+{y:2025,m:8,d:29,cat:'Ingresos',amt:500000},
+{y:2025,m:8,d:29,cat:'Panel',amt:-100000},
+{y:2025,m:8,d:29,cat:'Bajadas',amt:-400000},
+{y:2025,m:8,d:30,cat:'Ingresos',amt:400000},
+{y:2025,m:8,d:30,cat:'Bajadas',amt:-400000},
+{y:2025,m:8,d:31,cat:'Ingresos',amt:400000},
+{y:2025,m:8,d:31,cat:'Panel',amt:-200000},
+{y:2025,m:8,d:31,cat:'Bajadas',amt:-200000},
+{y:2025,m:8,d:31,cat:'Bajadas',amt:3160000},
+{y:2025,m:8,d:31,cat:'Sueldos',amt:-2860000},
+{y:2025,m:8,d:31,cat:'otros',amt:-300000},
+{y:2025,m:9,d:1,cat:'Ingresos',amt:300000},
+{y:2025,m:9,d:1,cat:'Panel',amt:-100000},
+{y:2025,m:9,d:1,cat:'Sueldos',amt:-200000},
+{y:2025,m:9,d:2,cat:'Ingresos',amt:500000},
+{y:2025,m:9,d:2,cat:'Panel',amt:-300000},
+{y:2025,m:9,d:2,cat:'Sueldos',amt:-200000},
+{y:2025,m:9,d:3,cat:'Ingresos',amt:200000},
+{y:2025,m:9,d:3,cat:'Sueldos',amt:-100000},
+{y:2025,m:9,d:3,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:4,cat:'Ingresos',amt:500000},
+{y:2025,m:9,d:4,cat:'Sueldos',amt:-300000},
+{y:2025,m:9,d:4,cat:'otros',amt:-200000},
+{y:2025,m:9,d:5,cat:'Ingresos',amt:650000},
+{y:2025,m:9,d:5,cat:'Panel',amt:-300000},
+{y:2025,m:9,d:5,cat:'Bajadas',amt:-300000},
+{y:2025,m:9,d:5,cat:'otros',amt:-50000},
+{y:2025,m:9,d:6,cat:'Ingresos',amt:900000},
+{y:2025,m:9,d:6,cat:'Panel',amt:-300000},
+{y:2025,m:9,d:6,cat:'Bajadas',amt:-500000},
+{y:2025,m:9,d:6,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:7,cat:'Ingresos',amt:400000},
+{y:2025,m:9,d:7,cat:'Panel',amt:-200000},
+{y:2025,m:9,d:7,cat:'Bajadas',amt:-200000},
+{y:2025,m:9,d:8,cat:'Ingresos',amt:400000},
+{y:2025,m:9,d:8,cat:'Bajadas',amt:-300000},
+{y:2025,m:9,d:8,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:9,cat:'Ingresos',amt:550000},
+{y:2025,m:9,d:9,cat:'Panel',amt:-300000},
+{y:2025,m:9,d:9,cat:'Bajadas',amt:-200000},
+{y:2025,m:9,d:9,cat:'Publicidad',amt:-50000},
+{y:2025,m:9,d:10,cat:'Ingresos',amt:1000000},
+{y:2025,m:9,d:10,cat:'Panel',amt:-300000},
+{y:2025,m:9,d:10,cat:'Bajadas',amt:-600000},
+{y:2025,m:9,d:10,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:11,cat:'Ingresos',amt:500000},
+{y:2025,m:9,d:11,cat:'Panel',amt:-400000},
+{y:2025,m:9,d:11,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:12,cat:'Ingresos',amt:1050000},
+{y:2025,m:9,d:12,cat:'Bajadas',amt:-900000},
+{y:2025,m:9,d:12,cat:'Publicidad',amt:-150000},
+{y:2025,m:9,d:13,cat:'Ingresos',amt:400000},
+{y:2025,m:9,d:13,cat:'Panel',amt:-400000},
+{y:2025,m:9,d:14,cat:'Ingresos',amt:900000},
+{y:2025,m:9,d:14,cat:'Panel',amt:-400000},
+{y:2025,m:9,d:14,cat:'Bajadas',amt:-300000},
+{y:2025,m:9,d:14,cat:'Publicidad',amt:-200000},
+{y:2025,m:9,d:15,cat:'Ingresos',amt:150000},
+{y:2025,m:9,d:15,cat:'Bajadas',amt:-100000},
+{y:2025,m:9,d:15,cat:'Publicidad',amt:-50000},
+{y:2025,m:9,d:17,cat:'Ingresos',amt:800000},
+{y:2025,m:9,d:17,cat:'Panel',amt:-300000},
+{y:2025,m:9,d:17,cat:'Bajadas',amt:-400000},
+{y:2025,m:9,d:17,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:18,cat:'Ingresos',amt:800000},
+{y:2025,m:9,d:18,cat:'Panel',amt:-200000},
+{y:2025,m:9,d:18,cat:'Bajadas',amt:-500000},
+{y:2025,m:9,d:18,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:19,cat:'Ingresos',amt:700000},
+{y:2025,m:9,d:19,cat:'Panel',amt:-100000},
+{y:2025,m:9,d:19,cat:'Bajadas',amt:-500000},
+{y:2025,m:9,d:19,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:20,cat:'Ingresos',amt:350000},
+{y:2025,m:9,d:20,cat:'Panel',amt:-300000},
+{y:2025,m:9,d:20,cat:'Publicidad',amt:-50000},
+{y:2025,m:9,d:21,cat:'Ingresos',amt:400000},
+{y:2025,m:9,d:21,cat:'Bajadas',amt:-300000},
+{y:2025,m:9,d:21,cat:'Sueldos',amt:-100000},
+{y:2025,m:9,d:22,cat:'Ingresos',amt:600000},
+{y:2025,m:9,d:22,cat:'Panel',amt:-400000},
+{y:2025,m:9,d:22,cat:'Bajadas',amt:-100000},
+{y:2025,m:9,d:22,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:23,cat:'Ingresos',amt:500000},
+{y:2025,m:9,d:23,cat:'Bajadas',amt:-300000},
+{y:2025,m:9,d:23,cat:'Publicidad',amt:-200000},
+{y:2025,m:9,d:24,cat:'Ingresos',amt:600000},
+{y:2025,m:9,d:24,cat:'Panel',amt:-300000},
+{y:2025,m:9,d:24,cat:'Bajadas',amt:-200000},
+{y:2025,m:9,d:24,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:25,cat:'Ingresos',amt:700000},
+{y:2025,m:9,d:25,cat:'Panel',amt:-100000},
+{y:2025,m:9,d:25,cat:'Bajadas',amt:-600000},
+{y:2025,m:9,d:26,cat:'Ingresos',amt:1000000},
+{y:2025,m:9,d:26,cat:'Panel',amt:-500000},
+{y:2025,m:9,d:26,cat:'Bajadas',amt:-400000},
+{y:2025,m:9,d:26,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:27,cat:'Ingresos',amt:700000},
+{y:2025,m:9,d:27,cat:'Bajadas',amt:-800000},
+{y:2025,m:9,d:28,cat:'Ingresos',amt:400000},
+{y:2025,m:9,d:28,cat:'Panel',amt:-100000},
+{y:2025,m:9,d:28,cat:'Bajadas',amt:-200000},
+{y:2025,m:9,d:29,cat:'Ingresos',amt:200000},
+{y:2025,m:9,d:29,cat:'Bajadas',amt:-100000},
+{y:2025,m:9,d:29,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:30,cat:'Ingresos',amt:600000},
+{y:2025,m:9,d:30,cat:'Panel',amt:-400000},
+{y:2025,m:9,d:30,cat:'Bajadas',amt:-100000},
+{y:2025,m:9,d:30,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:1,cat:'Ingresos',amt:1100000},
+{y:2025,m:10,d:1,cat:'Panel',amt:-400000},
+{y:2025,m:10,d:1,cat:'Sueldos',amt:-700000},
+{y:2025,m:10,d:2,cat:'Ingresos',amt:900000},
+{y:2025,m:10,d:2,cat:'Panel',amt:-500000},
+{y:2025,m:10,d:2,cat:'Sueldos',amt:-300000},
+{y:2025,m:10,d:2,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:3,cat:'Ingresos',amt:817070},
+{y:2025,m:10,d:3,cat:'Panel',amt:-200000},
+{y:2025,m:10,d:3,cat:'Sueldos',amt:-500000},
+{y:2025,m:10,d:3,cat:'otros',amt:-17070},
+{y:2025,m:10,d:3,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:4,cat:'Ingresos',amt:400000},
+{y:2025,m:10,d:4,cat:'Sueldos',amt:-400000},
+{y:2025,m:10,d:5,cat:'Ingresos',amt:700000},
+{y:2025,m:10,d:5,cat:'Panel',amt:-500000},
+{y:2025,m:10,d:5,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:6,cat:'Ingresos',amt:950000},
+{y:2025,m:10,d:6,cat:'Bajadas',amt:-600000},
+{y:2025,m:10,d:6,cat:'otros',amt:-250000},
+{y:2025,m:10,d:6,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:7,cat:'Ingresos',amt:600000},
+{y:2025,m:10,d:7,cat:'Panel',amt:-400000},
+{y:2025,m:10,d:7,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:8,cat:'Ingresos',amt:950000},
+{y:2025,m:10,d:8,cat:'Panel',amt:-400000},
+{y:2025,m:10,d:8,cat:'Bajadas',amt:-500000},
+{y:2025,m:10,d:8,cat:'Publicidad',amt:-50000},
+{y:2025,m:10,d:9,cat:'Ingresos',amt:1000000},
+{y:2025,m:10,d:9,cat:'Bajadas',amt:-900000},
+{y:2025,m:10,d:9,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:10,cat:'Ingresos',amt:1200000},
+{y:2025,m:10,d:10,cat:'Panel',amt:-400000},
+{y:2025,m:10,d:10,cat:'Bajadas',amt:-800000},
+{y:2025,m:10,d:11,cat:'Ingresos',amt:1200000},
+{y:2025,m:10,d:11,cat:'Panel',amt:-400000},
+{y:2025,m:10,d:11,cat:'Bajadas',amt:-800000},
+{y:2025,m:10,d:12,cat:'Ingresos',amt:200000},
+{y:2025,m:10,d:12,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:13,cat:'Ingresos',amt:300000},
+{y:2025,m:10,d:13,cat:'Panel',amt:-100000},
+{y:2025,m:10,d:13,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:14,cat:'Ingresos',amt:900000},
+{y:2025,m:10,d:14,cat:'Panel',amt:-500000},
+{y:2025,m:10,d:14,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:14,cat:'Publicidad',amt:-200000},
+{y:2025,m:10,d:15,cat:'Ingresos',amt:600000},
+{y:2025,m:10,d:15,cat:'Bajadas',amt:-600000},
+{y:2025,m:10,d:16,cat:'Ingresos',amt:500000},
+{y:2025,m:10,d:16,cat:'Panel',amt:-200000},
+{y:2025,m:10,d:16,cat:'Bajadas',amt:-300000},
+{y:2025,m:10,d:17,cat:'Ingresos',amt:900000},
+{y:2025,m:10,d:17,cat:'Panel',amt:-400000},
+{y:2025,m:10,d:17,cat:'Bajadas',amt:-400000},
+{y:2025,m:10,d:17,cat:'Publicidad',amt:-100000},
+{y:2025,m:9,d:30,cat:'Bajadas',amt:1890000},
+{y:2025,m:9,d:30,cat:'otros',amt:-300000},
+{y:2025,m:9,d:30,cat:'Sueldos',amt:-1590000},
+{y:2025,m:10,d:18,cat:'Ingresos',amt:800000},
+{y:2025,m:10,d:18,cat:'Panel',amt:-400000},
+{y:2025,m:10,d:18,cat:'Bajadas',amt:-300000},
+{y:2025,m:10,d:18,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:19,cat:'Ingresos',amt:800000},
+{y:2025,m:10,d:19,cat:'Bajadas',amt:-800000},
+{y:2025,m:10,d:20,cat:'Ingresos',amt:700000},
+{y:2025,m:10,d:20,cat:'Panel',amt:-600000},
+{y:2025,m:10,d:20,cat:'Bajadas',amt:-100000},
+{y:2025,m:10,d:21,cat:'Ingresos',amt:200000},
+{y:2025,m:10,d:21,cat:'Panel',amt:-100000},
+{y:2025,m:10,d:21,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:22,cat:'Ingresos',amt:548000},
+{y:2025,m:10,d:22,cat:'Panel',amt:-200000},
+{y:2025,m:10,d:22,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:22,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:22,cat:'otros',amt:-48000},
+{y:2025,m:10,d:23,cat:'Ingresos',amt:550000},
+{y:2025,m:10,d:23,cat:'Bajadas',amt:-400000},
+{y:2025,m:10,d:23,cat:'Publicidad',amt:-150000},
+{y:2025,m:10,d:24,cat:'Ingresos',amt:300000},
+{y:2025,m:10,d:24,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:24,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:25,cat:'Ingresos',amt:500000},
+{y:2025,m:10,d:25,cat:'Bajadas',amt:-500000},
+{y:2025,m:10,d:26,cat:'Ingresos',amt:600000},
+{y:2025,m:10,d:26,cat:'Panel',amt:-500000},
+{y:2025,m:10,d:26,cat:'Bajadas',amt:-100000},
+{y:2025,m:10,d:27,cat:'Ingresos',amt:200000},
+{y:2025,m:10,d:27,cat:'Panel',amt:-100000},
+{y:2025,m:10,d:27,cat:'Publicidad',amt:-100000},
+{y:2025,m:10,d:28,cat:'Ingresos',amt:200000},
+{y:2025,m:10,d:28,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:29,cat:'Ingresos',amt:650000},
+{y:2025,m:10,d:29,cat:'Bajadas',amt:-600000},
+{y:2025,m:10,d:29,cat:'Publicidad',amt:-50000},
+{y:2025,m:10,d:30,cat:'Ingresos',amt:600000},
+{y:2025,m:10,d:30,cat:'Panel',amt:-500000},
+{y:2025,m:10,d:30,cat:'Bajadas',amt:-100000},
+{y:2025,m:10,d:31,cat:'Ingresos',amt:450000},
+{y:2025,m:10,d:31,cat:'Panel',amt:-100000},
+{y:2025,m:10,d:31,cat:'Bajadas',amt:-200000},
+{y:2025,m:10,d:31,cat:'Publicidad',amt:-150000},
+{y:2025,m:11,d:1,cat:'Ingresos',amt:500000},
+{y:2025,m:11,d:1,cat:'Panel',amt:-100000},
+{y:2025,m:11,d:1,cat:'Sueldos',amt:-400000},
+{y:2025,m:11,d:2,cat:'Ingresos',amt:700000},
+{y:2025,m:11,d:2,cat:'Panel',amt:-200000},
+{y:2025,m:11,d:2,cat:'Sueldos',amt:-400000},
+{y:2025,m:11,d:2,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:3,cat:'Ingresos',amt:400000},
+{y:2025,m:11,d:3,cat:'Sueldos',amt:-400000},
+{y:2025,m:11,d:4,cat:'Ingresos',amt:1000000},
+{y:2025,m:11,d:4,cat:'Panel',amt:-600000},
+{y:2025,m:11,d:4,cat:'Sueldos',amt:-400000},
+{y:2025,m:11,d:5,cat:'Ingresos',amt:700000},
+{y:2025,m:11,d:5,cat:'Bajadas',amt:-300000},
+{y:2025,m:11,d:5,cat:'Sueldos',amt:-200000},
+{y:2025,m:11,d:5,cat:'Publicidad',amt:-200000},
+{y:2025,m:11,d:6,cat:'Ingresos',amt:900000},
+{y:2025,m:11,d:6,cat:'Bajadas',amt:-600000},
+{y:2025,m:11,d:6,cat:'Panel',amt:-300000},
+{y:2025,m:10,d:31,cat:'Bajadas',amt:2428000},
+{y:2025,m:10,d:31,cat:'Sueldos',amt:-2128000},
+{y:2025,m:10,d:31,cat:'otros',amt:-300000},
+{y:2025,m:11,d:7,cat:'Ingresos',amt:900000},
+{y:2025,m:11,d:7,cat:'Bajadas',amt:-600000},
+{y:2025,m:11,d:7,cat:'Panel',amt:-300000},
+{y:2025,m:11,d:8,cat:'Ingresos',amt:800000},
+{y:2025,m:11,d:8,cat:'Bajadas',amt:-700000},
+{y:2025,m:11,d:8,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:9,cat:'Ingresos',amt:800000},
+{y:2025,m:11,d:9,cat:'Bajadas',amt:-100000},
+{y:2025,m:11,d:9,cat:'Panel',amt:-600000},
+{y:2025,m:11,d:9,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:10,cat:'Ingresos',amt:575000},
+{y:2025,m:11,d:10,cat:'Panel',amt:-300000},
+{y:2025,m:11,d:11,cat:'Ingresos',amt:300000},
+{y:2025,m:11,d:11,cat:'Bajadas',amt:-300000},
+{y:2025,m:11,d:12,cat:'Ingresos',amt:500000},
+{y:2025,m:11,d:12,cat:'Bajadas',amt:-400000},
+{y:2025,m:11,d:12,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:13,cat:'Ingresos',amt:600000},
+{y:2025,m:11,d:13,cat:'Bajadas',amt:-400000},
+{y:2025,m:11,d:13,cat:'Publicidad',amt:-200000},
+{y:2025,m:11,d:14,cat:'Ingresos',amt:500000},
+{y:2025,m:11,d:14,cat:'Panel',amt:-500000},
+{y:2025,m:11,d:15,cat:'Ingresos',amt:1000000},
+{y:2025,m:11,d:15,cat:'Bajadas',amt:-800000},
+{y:2025,m:11,d:15,cat:'Sueldos',amt:-100000},
+{y:2025,m:11,d:15,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:16,cat:'Ingresos',amt:100000},
+{y:2025,m:11,d:16,cat:'Panel',amt:-100000},
+{y:2025,m:11,d:17,cat:'Ingresos',amt:600000},
+{y:2025,m:11,d:17,cat:'Bajadas',amt:-100000},
+{y:2025,m:11,d:17,cat:'Panel',amt:-500000},
+{y:2025,m:11,d:18,cat:'Ingresos',amt:300000},
+{y:2025,m:11,d:18,cat:'Bajadas',amt:-200000},
+{y:2025,m:11,d:18,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:19,cat:'Ingresos',amt:700000},
+{y:2025,m:11,d:19,cat:'Bajadas',amt:-300000},
+{y:2025,m:11,d:19,cat:'Panel',amt:-400000},
+{y:2025,m:11,d:20,cat:'Ingresos',amt:600000},
+{y:2025,m:11,d:20,cat:'Bajadas',amt:-600000},
+{y:2025,m:11,d:21,cat:'Ingresos',amt:700000},
+{y:2025,m:11,d:21,cat:'Bajadas',amt:-600000},
+{y:2025,m:11,d:21,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:22,cat:'Ingresos',amt:650000},
+{y:2025,m:11,d:22,cat:'Panel',amt:-600000},
+{y:2025,m:11,d:22,cat:'Publicidad',amt:-50000},
+{y:2025,m:11,d:23,cat:'Ingresos',amt:739000},
+{y:2025,m:11,d:23,cat:'Bajadas',amt:-600000},
+{y:2025,m:11,d:23,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:23,cat:'otros',amt:-39000},
+{y:2025,m:11,d:24,cat:'Ingresos',amt:600000},
+{y:2025,m:11,d:24,cat:'Bajadas',amt:-300000},
+{y:2025,m:11,d:24,cat:'Panel',amt:-200000},
+{y:2025,m:11,d:24,cat:'Publicidad',amt:-100000},
+{y:2025,m:11,d:25,cat:'Ingresos',amt:650000},
+{y:2025,m:11,d:25,cat:'Bajadas',amt:-300000},
+{y:2025,m:11,d:25,cat:'Panel',amt:-200000},
+{y:2025,m:11,d:25,cat:'Publicidad',amt:-150000},
+{y:2025,m:11,d:26,cat:'Ingresos',amt:1050000},
+{y:2025,m:11,d:26,cat:'Bajadas',amt:-400000},
+{y:2025,m:11,d:26,cat:'Panel',amt:-500000},
+{y:2025,m:11,d:26,cat:'Publicidad',amt:-50000},
+{y:2025,m:11,d:26,cat:'Sueldos',amt:-100000},
+{y:2025,m:11,d:27,cat:'Ingresos',amt:350000},
+{y:2025,m:11,d:27,cat:'Bajadas',amt:-300000},
+{y:2025,m:11,d:27,cat:'Publicidad',amt:-50000},
+{y:2025,m:11,d:28,cat:'Ingresos',amt:350000},
+{y:2025,m:11,d:28,cat:'Bajadas',amt:-100000},
+{y:2025,m:11,d:28,cat:'Panel',amt:-200000},
+{y:2025,m:11,d:28,cat:'Publicidad',amt:-50000},
+{y:2025,m:11,d:29,cat:'Ingresos',amt:600000},
+{y:2025,m:11,d:29,cat:'Bajadas',amt:-400000},
+{y:2025,m:11,d:29,cat:'Panel',amt:-200000},
+{y:2025,m:11,d:30,cat:'Ingresos',amt:1050000},
+{y:2025,m:11,d:30,cat:'Bajadas',amt:-500000},
+{y:2025,m:11,d:30,cat:'Panel',amt:-500000},
+{y:2025,m:11,d:30,cat:'Publicidad',amt:-50000},
+{y:2025,m:12,d:2,cat:'Ingresos',amt:200000},
+{y:2025,m:12,d:2,cat:'Sueldos',amt:-100000},
+{y:2025,m:12,d:2,cat:'Publicidad',amt:-100000},
+{y:2025,m:12,d:3,cat:'Ingresos',amt:450000},
+{y:2025,m:12,d:3,cat:'Sueldos',amt:-400000},
+{y:2025,m:12,d:3,cat:'Publicidad',amt:-50000},
+{y:2025,m:12,d:4,cat:'Ingresos',amt:500000},
+{y:2025,m:12,d:4,cat:'Panel',amt:-300000},
+{y:2025,m:12,d:4,cat:'Sueldos',amt:-100000},
+{y:2025,m:12,d:4,cat:'Publicidad',amt:-100000},
+{y:2025,m:12,d:5,cat:'Ingresos',amt:300000},
+{y:2025,m:12,d:5,cat:'Sueldos',amt:-300000},
+{y:2025,m:12,d:6,cat:'Ingresos',amt:1150000},
+{y:2025,m:12,d:6,cat:'Panel',amt:-600000},
+{y:2025,m:12,d:6,cat:'Publicidad',amt:-150000},
+{y:2025,m:12,d:6,cat:'Bajadas',amt:-400000},
+{y:2025,m:12,d:7,cat:'Ingresos',amt:1000000},
+{y:2025,m:12,d:7,cat:'Panel',amt:-500000},
+{y:2025,m:12,d:7,cat:'Publicidad',amt:-100000},
+{y:2025,m:12,d:7,cat:'Bajadas',amt:-400000},
+{y:2025,m:12,d:9,cat:'Ingresos',amt:110000},
+{y:2025,m:12,d:9,cat:'Publicidad',amt:-110000},
+{y:2025,m:12,d:10,cat:'Ingresos',amt:160000},
+{y:2025,m:12,d:10,cat:'Publicidad',amt:-160000},
+{y:2025,m:12,d:11,cat:'Ingresos',amt:968000},
+{y:2025,m:12,d:11,cat:'Publicidad',amt:-100000},
+{y:2025,m:12,d:11,cat:'Bajadas',amt:-600000},
+{y:2025,m:12,d:11,cat:'otros',amt:-268000},
+{y:2025,m:11,d:30,cat:'Bajadas',amt:2869000},
+{y:2025,m:11,d:30,cat:'otros',amt:-300000},
+{y:2025,m:11,d:30,cat:'Sueldos',amt:-2569000},
+{y:2025,m:12,d:12,cat:'Ingresos',amt:760000},
+{y:2025,m:12,d:12,cat:'Panel',amt:-400000},
+{y:2025,m:12,d:12,cat:'Publicidad',amt:-60000},
+{y:2025,m:12,d:12,cat:'Bajadas',amt:-300000},
+{y:2025,m:12,d:13,cat:'Ingresos',amt:760000},
+{y:2025,m:12,d:13,cat:'Panel',amt:-300000},
+{y:2025,m:12,d:13,cat:'Publicidad',amt:-160000},
+{y:2025,m:12,d:13,cat:'Bajadas',amt:-300000},
+{y:2025,m:12,d:14,cat:'Ingresos',amt:750000},
+{y:2025,m:12,d:14,cat:'Panel',amt:-200000},
+{y:2025,m:12,d:14,cat:'Publicidad',amt:-50000},
+{y:2025,m:12,d:14,cat:'Bajadas',amt:-500000},
+{y:2025,m:12,d:15,cat:'Ingresos',amt:1170000},
+{y:2025,m:12,d:15,cat:'Panel',amt:-400000},
+{y:2025,m:12,d:15,cat:'Publicidad',amt:-170000},
+{y:2025,m:12,d:15,cat:'Bajadas',amt:-600000},
+{y:2025,m:12,d:16,cat:'Ingresos',amt:660000},
+{y:2025,m:12,d:16,cat:'Panel',amt:-400000},
+{y:2025,m:12,d:16,cat:'Publicidad',amt:-160000},
+{y:2025,m:12,d:16,cat:'Bajadas',amt:-100000},
+{y:2025,m:12,d:17,cat:'Ingresos',amt:1200000},
+{y:2025,m:12,d:17,cat:'Panel',amt:-300000},
+{y:2025,m:12,d:17,cat:'Bajadas',amt:-800000},
+{y:2025,m:12,d:17,cat:'Sueldos',amt:-100000},
+{y:2025,m:12,d:18,cat:'Ingresos',amt:900000},
+{y:2025,m:12,d:18,cat:'Panel',amt:-600000},
+{y:2025,m:12,d:18,cat:'Publicidad',amt:-100000},
+{y:2025,m:12,d:18,cat:'Bajadas',amt:-200000},
+{y:2025,m:12,d:19,cat:'Ingresos',amt:1260000},
+{y:2025,m:12,d:19,cat:'Publicidad',amt:-160000},
+{y:2025,m:12,d:19,cat:'Bajadas',amt:-1100000},
+{y:2025,m:12,d:20,cat:'Ingresos',amt:800000},
+{y:2025,m:12,d:20,cat:'Panel',amt:-700000},
+{y:2025,m:12,d:20,cat:'Bajadas',amt:-100000},
+{y:2025,m:12,d:21,cat:'Ingresos',amt:600000},
+{y:2025,m:12,d:21,cat:'Panel',amt:-400000},
+{y:2025,m:12,d:21,cat:'Publicidad',amt:-100000},
+{y:2025,m:12,d:21,cat:'Bajadas',amt:-100000},
+{y:2025,m:12,d:22,cat:'Ingresos',amt:420000},
+{y:2025,m:12,d:22,cat:'Publicidad',amt:-120000},
+{y:2025,m:12,d:22,cat:'Bajadas',amt:-300000},
+{y:2025,m:12,d:23,cat:'Ingresos',amt:450000},
+{y:2025,m:12,d:23,cat:'Panel',amt:-400000},
+{y:2025,m:12,d:23,cat:'Publicidad',amt:-50000},
+{y:2025,m:12,d:24,cat:'Ingresos',amt:900000},
+{y:2025,m:12,d:24,cat:'Panel',amt:-400000},
+{y:2025,m:12,d:24,cat:'Publicidad',amt:-100000},
+{y:2025,m:12,d:24,cat:'Bajadas',amt:-400000},
+{y:2025,m:12,d:25,cat:'Ingresos',amt:660000},
+{y:2025,m:12,d:25,cat:'Panel',amt:-500000},
+{y:2025,m:12,d:25,cat:'Publicidad',amt:-60000},
+{y:2025,m:12,d:25,cat:'Bajadas',amt:-100000},
+{y:2025,m:12,d:26,cat:'Ingresos',amt:600000},
+{y:2025,m:12,d:26,cat:'Publicidad',amt:-100000},
+{y:2025,m:12,d:26,cat:'Bajadas',amt:-500000},
+{y:2025,m:12,d:27,cat:'Ingresos',amt:550000},
+{y:2025,m:12,d:27,cat:'Panel',amt:-400000},
+{y:2025,m:12,d:27,cat:'Publicidad',amt:-50000},
+{y:2025,m:12,d:27,cat:'Bajadas',amt:-100000},
+{y:2025,m:12,d:28,cat:'Ingresos',amt:250000},
+{y:2025,m:12,d:28,cat:'Publicidad',amt:-50000},
+{y:2025,m:12,d:28,cat:'Bajadas',amt:-200000},
+{y:2025,m:12,d:29,cat:'Ingresos',amt:450000},
+{y:2025,m:12,d:29,cat:'Panel',amt:-400000},
+{y:2025,m:12,d:29,cat:'Publicidad',amt:-50000},
+{y:2025,m:12,d:30,cat:'Ingresos',amt:520000},
+{y:2025,m:12,d:30,cat:'Panel',amt:-300000},
+{y:2025,m:12,d:30,cat:'Publicidad',amt:-120000},
+{y:2025,m:12,d:30,cat:'Bajadas',amt:-100000},
+{y:2025,m:12,d:31,cat:'Ingresos',amt:500000},
+{y:2025,m:12,d:31,cat:'Bajadas',amt:-500000},
+{y:2026,m:1,d:1,cat:'Ingresos',amt:200000},
+{y:2026,m:1,d:1,cat:'Panel',amt:-100000},
+{y:2026,m:1,d:1,cat:'Sueldos',amt:-100000},
+{y:2026,m:1,d:2,cat:'Ingresos',amt:600000},
+{y:2026,m:1,d:2,cat:'Panel',amt:-600000},
+{y:2026,m:1,d:3,cat:'Ingresos',amt:150000},
+{y:2026,m:1,d:3,cat:'Publicidad',amt:-150000},
+{y:2026,m:1,d:4,cat:'Ingresos',amt:300000},
+{y:2026,m:1,d:4,cat:'Sueldos',amt:-300000},
+{y:2026,m:1,d:5,cat:'Ingresos',amt:160000},
+{y:2026,m:1,d:5,cat:'Publicidad',amt:-160000},
+{y:2025,m:12,d:31,cat:'Bajadas',amt:3655000},
+{y:2025,m:12,d:31,cat:'otros',amt:-300000},
+{y:2025,m:12,d:31,cat:'Sueldos',amt:-3355000},
+{y:2026,m:1,d:6,cat:'Ingresos',amt:550000},
+{y:2026,m:1,d:6,cat:'Publicidad',amt:-50000},
+{y:2026,m:1,d:6,cat:'Bajadas',amt:-500000},
+{y:2026,m:1,d:7,cat:'Ingresos',amt:860000},
+{y:2026,m:1,d:7,cat:'Panel',amt:-700000},
+{y:2026,m:1,d:7,cat:'Publicidad',amt:-160000},
+{y:2026,m:1,d:8,cat:'Ingresos',amt:350000},
+{y:2026,m:1,d:8,cat:'Publicidad',amt:-50000},
+{y:2026,m:1,d:8,cat:'Bajadas',amt:-300000},
+{y:2026,m:1,d:9,cat:'Ingresos',amt:760000},
+{y:2026,m:1,d:9,cat:'Panel',amt:-500000},
+{y:2026,m:1,d:9,cat:'Publicidad',amt:-60000},
+{y:2026,m:1,d:9,cat:'Bajadas',amt:-200000},
+{y:2026,m:1,d:10,cat:'Ingresos',amt:510000},
+{y:2026,m:1,d:10,cat:'Panel',amt:-200000},
+{y:2026,m:1,d:10,cat:'Publicidad',amt:-110000},
+{y:2026,m:1,d:10,cat:'Bajadas',amt:-200000},
+{y:2026,m:1,d:11,cat:'Ingresos',amt:760000},
+{y:2026,m:1,d:11,cat:'Panel',amt:-300000},
+{y:2026,m:1,d:11,cat:'Publicidad',amt:-60000},
+{y:2026,m:1,d:11,cat:'Bajadas',amt:-400000},
+{y:2026,m:1,d:12,cat:'Ingresos',amt:350000},
+{y:2026,m:1,d:12,cat:'Panel',amt:-100000},
+{y:2026,m:1,d:12,cat:'Publicidad',amt:-150000},
+{y:2026,m:1,d:12,cat:'Bajadas',amt:-100000},
+{y:2026,m:1,d:13,cat:'Ingresos',amt:318500},
+{y:2026,m:1,d:13,cat:'Publicidad',amt:-120000},
+{y:2026,m:1,d:13,cat:'Bajadas',amt:-100000},
+{y:2026,m:1,d:13,cat:'otros',amt:-98500},
+{y:2026,m:1,d:14,cat:'Ingresos',amt:700000},
+{y:2026,m:1,d:14,cat:'Publicidad',amt:-100000},
+{y:2026,m:1,d:14,cat:'Bajadas',amt:-600000},
+{y:2026,m:1,d:15,cat:'Ingresos',amt:800000},
+{y:2026,m:1,d:15,cat:'Panel',amt:-500000},
+{y:2026,m:1,d:15,cat:'Publicidad',amt:-100000},
+{y:2026,m:1,d:15,cat:'Bajadas',amt:-200000},
+{y:2026,m:1,d:16,cat:'Ingresos',amt:600000},
+{y:2026,m:1,d:16,cat:'Panel',amt:-200000},
+{y:2026,m:1,d:16,cat:'Bajadas',amt:-400000},
+{y:2026,m:1,d:17,cat:'Ingresos',amt:60000},
+{y:2026,m:1,d:17,cat:'Publicidad',amt:-60000},
+{y:2026,m:1,d:18,cat:'Ingresos',amt:350000},
+{y:2026,m:1,d:18,cat:'Panel',amt:-200000},
+{y:2026,m:1,d:18,cat:'Publicidad',amt:-50000},
+{y:2026,m:1,d:18,cat:'Bajadas',amt:-100000},
+{y:2026,m:1,d:19,cat:'Ingresos',amt:210000},
+{y:2026,m:1,d:19,cat:'Publicidad',amt:-110000},
+{y:2026,m:1,d:19,cat:'Bajadas',amt:-100000},
+{y:2026,m:1,d:20,cat:'Ingresos',amt:300000},
+{y:2026,m:1,d:20,cat:'Panel',amt:-200000},
+{y:2026,m:1,d:20,cat:'Publicidad',amt:-100000},
+{y:2026,m:1,d:21,cat:'Ingresos',amt:1010000},
+{y:2026,m:1,d:21,cat:'Panel',amt:-300000},
+{y:2026,m:1,d:21,cat:'Publicidad',amt:-110000},
+{y:2026,m:1,d:21,cat:'Bajadas',amt:-600000},
+{y:2026,m:1,d:22,cat:'Ingresos',amt:550000},
+{y:2026,m:1,d:22,cat:'Panel',amt:-500000},
+{y:2026,m:1,d:22,cat:'Publicidad',amt:-50000},
+{y:2026,m:1,d:23,cat:'Ingresos',amt:300000},
+{y:2026,m:1,d:23,cat:'Bajadas',amt:-300000},
+{y:2026,m:1,d:24,cat:'Ingresos',amt:500000},
+{y:2026,m:1,d:24,cat:'Panel',amt:-500000},
+{y:2026,m:1,d:25,cat:'Ingresos',amt:320000},
+{y:2026,m:1,d:25,cat:'Bajadas',amt:-200000},
+{y:2026,m:1,d:25,cat:'Publicidad',amt:-120000},
+{y:2026,m:1,d:26,cat:'Ingresos',amt:300000},
+{y:2026,m:1,d:26,cat:'Panel',amt:-200000},
+{y:2026,m:1,d:26,cat:'Bajadas',amt:-100000},
+{y:2026,m:1,d:27,cat:'Ingresos',amt:100000},
+{y:2026,m:1,d:27,cat:'Publicidad',amt:-100000},
+{y:2026,m:1,d:28,cat:'Ingresos',amt:400000},
+{y:2026,m:1,d:28,cat:'Publicidad',amt:-200000},
+{y:2026,m:1,d:28,cat:'Panel',amt:-200000},
+{y:2026,m:1,d:29,cat:'Ingresos',amt:450000},
+{y:2026,m:1,d:29,cat:'Bajadas',amt:-300000},
+{y:2026,m:1,d:29,cat:'Publicidad',amt:-150000},
+{y:2026,m:1,d:30,cat:'Ingresos',amt:600000},
+{y:2026,m:1,d:30,cat:'Publicidad',amt:-200000},
+{y:2026,m:1,d:30,cat:'Panel',amt:-400000},
+{y:2026,m:1,d:31,cat:'Ingresos',amt:600000},
+{y:2026,m:1,d:31,cat:'Bajadas',amt:-100000},
+{y:2026,m:1,d:31,cat:'Publicidad',amt:-100000},
+{y:2026,m:1,d:31,cat:'Panel',amt:-400000},
+{y:2026,m:2,d:1,cat:'Ingresos',amt:150000},
+{y:2026,m:2,d:1,cat:'Publicidad',amt:-150000},
+{y:2026,m:2,d:2,cat:'Ingresos',amt:700000},
+{y:2026,m:2,d:2,cat:'Sueldos',amt:-200000},
+{y:2026,m:2,d:2,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:2,cat:'Panel',amt:-400000},
+{y:2026,m:2,d:3,cat:'Ingresos',amt:350000},
+{y:2026,m:2,d:3,cat:'Sueldos',amt:-300000},
+{y:2026,m:2,d:3,cat:'Publicidad',amt:-50000},
+{y:2026,m:2,d:4,cat:'Ingresos',amt:300000},
+{y:2026,m:2,d:4,cat:'Sueldos',amt:-200000},
+{y:2026,m:2,d:4,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:5,cat:'Ingresos',amt:450000},
+{y:2026,m:2,d:5,cat:'Panel',amt:-300000},
+{y:2026,m:2,d:5,cat:'Publicidad',amt:-150000},
+{y:2026,m:2,d:6,cat:'Ingresos',amt:900000},
+{y:2026,m:2,d:6,cat:'Panel',amt:-500000},
+{y:2026,m:2,d:6,cat:'Publicidad',amt:-300000},
+{y:2026,m:2,d:6,cat:'Bajadas',amt:-100000},
+{y:2026,m:2,d:7,cat:'Ingresos',amt:1050000},
+{y:2026,m:2,d:7,cat:'Panel',amt:-400000},
+{y:2026,m:2,d:7,cat:'Publicidad',amt:-150000},
+{y:2026,m:2,d:7,cat:'Bajadas',amt:-500000},
+{y:2026,m:2,d:8,cat:'Ingresos',amt:700000},
+{y:2026,m:2,d:8,cat:'Panel',amt:-500000},
+{y:2026,m:2,d:8,cat:'Publicidad',amt:-200000},
+{y:2026,m:2,d:9,cat:'Ingresos',amt:697600},
+{y:2026,m:2,d:9,cat:'Panel',amt:-100000},
+{y:2026,m:2,d:9,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:9,cat:'Bajadas',amt:-400000},
+{y:2026,m:2,d:9,cat:'otros',amt:-97600},
+{y:2026,m:2,d:10,cat:'Ingresos',amt:550000},
+{y:2026,m:2,d:10,cat:'Panel',amt:-400000},
+{y:2026,m:2,d:10,cat:'Publicidad',amt:-150000},
+{y:2026,m:2,d:11,cat:'Ingresos',amt:751500},
+{y:2026,m:2,d:11,cat:'Panel',amt:-501500},
+{y:2026,m:2,d:11,cat:'Publicidad',amt:-50000},
+{y:2026,m:2,d:11,cat:'Bajadas',amt:-200000},
+{y:2026,m:2,d:12,cat:'Ingresos',amt:600000},
+{y:2026,m:2,d:12,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:12,cat:'Bajadas',amt:-500000},
+{y:2026,m:2,d:13,cat:'Ingresos',amt:601000},
+{y:2026,m:2,d:13,cat:'Panel',amt:-501000},
+{y:2026,m:2,d:13,cat:'Bajadas',amt:-100000},
+{y:2026,m:2,d:14,cat:'Ingresos',amt:400100},
+{y:2026,m:2,d:14,cat:'Panel',amt:-100100},
+{y:2026,m:2,d:14,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:14,cat:'Bajadas',amt:-200000},
+{y:2026,m:2,d:15,cat:'Ingresos',amt:801400},
+{y:2026,m:2,d:15,cat:'Panel',amt:-401400},
+{y:2026,m:2,d:15,cat:'Publicidad',amt:-400000},
+{y:2026,m:2,d:16,cat:'Ingresos',amt:250000},
+{y:2026,m:2,d:16,cat:'Publicidad',amt:-250000},
+{y:2026,m:2,d:17,cat:'Ingresos',amt:150100},
+{y:2026,m:2,d:17,cat:'Panel',amt:-100100},
+{y:2026,m:2,d:17,cat:'Publicidad',amt:-50000},
+{y:2026,m:2,d:18,cat:'Ingresos',amt:501000},
+{y:2026,m:2,d:18,cat:'Panel',amt:-401000},
+{y:2026,m:2,d:18,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:19,cat:'Ingresos',amt:300000},
+{y:2026,m:2,d:19,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:19,cat:'Bajadas',amt:-200000},
+{y:2026,m:2,d:20,cat:'Ingresos',amt:515900},
+{y:2026,m:2,d:20,cat:'Panel',amt:-400600},
+{y:2026,m:2,d:20,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:20,cat:'otros',amt:-15300},
+{y:2026,m:2,d:21,cat:'Ingresos',amt:800900},
+{y:2026,m:2,d:21,cat:'Panel',amt:-400900},
+{y:2026,m:2,d:21,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:21,cat:'Bajadas',amt:-300000},
+{y:2026,m:2,d:22,cat:'Ingresos',amt:300000},
+{y:2026,m:2,d:22,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:22,cat:'Bajadas',amt:-200000},
+{y:2026,m:2,d:23,cat:'Ingresos',amt:250000},
+{y:2026,m:2,d:23,cat:'Publicidad',amt:-50000},
+{y:2026,m:2,d:23,cat:'Bajadas',amt:-200000},
+{y:2026,m:2,d:24,cat:'Ingresos',amt:300600},
+{y:2026,m:2,d:24,cat:'Panel',amt:-300600},
+{y:2026,m:2,d:25,cat:'Ingresos',amt:700000},
+{y:2026,m:2,d:25,cat:'Panel',amt:-100000},
+{y:2026,m:2,d:25,cat:'Publicidad',amt:-200000},
+{y:2026,m:2,d:25,cat:'Bajadas',amt:-400000},
+{y:2026,m:2,d:26,cat:'Ingresos',amt:500000},
+{y:2026,m:2,d:26,cat:'Panel',amt:-400000},
+{y:2026,m:2,d:26,cat:'Bajadas',amt:-100000},
+{y:2026,m:2,d:27,cat:'Ingresos',amt:500000},
+{y:2026,m:2,d:27,cat:'Publicidad',amt:-100000},
+{y:2026,m:2,d:27,cat:'Bajadas',amt:-400000},
+{y:2026,m:2,d:28,cat:'Ingresos',amt:850300},
+{y:2026,m:2,d:28,cat:'Panel',amt:-300300},
+{y:2026,m:2,d:28,cat:'Publicidad',amt:-50000},
+{y:2026,m:2,d:28,cat:'Bajadas',amt:-500000},
+{y:2026,m:3,d:1,cat:'Ingresos',amt:700200},
+{y:2026,m:3,d:1,cat:'Panel',amt:-200200},
+{y:2026,m:3,d:1,cat:'Publicidad',amt:-300000},
+{y:2026,m:3,d:1,cat:'Sueldos',amt:-200000},
+{y:2026,m:3,d:2,cat:'Ingresos',amt:300000},
+{y:2026,m:3,d:2,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:2,cat:'Sueldos',amt:-200000},
+{y:2026,m:3,d:3,cat:'Ingresos',amt:291200},
+{y:2026,m:3,d:3,cat:'Panel',amt:-91200},
+{y:2026,m:3,d:3,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:3,cat:'Sueldos',amt:-100000},
+{y:2026,m:3,d:4,cat:'Ingresos',amt:800100},
+{y:2026,m:3,d:4,cat:'Panel',amt:-100100},
+{y:2026,m:3,d:4,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:4,cat:'Sueldos',amt:-600000},
+{y:2026,m:3,d:5,cat:'Ingresos',amt:701400},
+{y:2026,m:3,d:5,cat:'Panel',amt:-401400},
+{y:2026,m:3,d:5,cat:'Publicidad',amt:-300000},
+{y:2026,m:3,d:6,cat:'Ingresos',amt:700900},
+{y:2026,m:3,d:6,cat:'Panel',amt:-500900},
+{y:2026,m:3,d:6,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:6,cat:'Bajadas',amt:-100000},
+{y:2026,m:3,d:7,cat:'Ingresos',amt:905100},
+{y:2026,m:3,d:7,cat:'Panel',amt:-605100},
+{y:2026,m:3,d:7,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:7,cat:'Bajadas',amt:-200000},
+{y:2026,m:3,d:8,cat:'Ingresos',amt:851000},
+{y:2026,m:3,d:8,cat:'Panel',amt:-401000},
+{y:2026,m:3,d:8,cat:'Publicidad',amt:-150000},
+{y:2026,m:3,d:8,cat:'Bajadas',amt:-300000},
+{y:2026,m:3,d:9,cat:'Ingresos',amt:701000},
+{y:2026,m:3,d:9,cat:'Panel',amt:-401000},
+{y:2026,m:3,d:9,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:9,cat:'Bajadas',amt:-200000},
+{y:2026,m:3,d:10,cat:'Ingresos',amt:401000},
+{y:2026,m:3,d:10,cat:'Panel',amt:-401000},
+{y:2026,m:3,d:11,cat:'Ingresos',amt:600000},
+{y:2026,m:3,d:11,cat:'Publicidad',amt:-300000},
+{y:2026,m:3,d:11,cat:'Bajadas',amt:-300000},
+{y:2026,m:3,d:12,cat:'Ingresos',amt:100000},
+{y:2026,m:3,d:12,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:13,cat:'Ingresos',amt:700000},
+{y:2026,m:3,d:13,cat:'Panel',amt:-400000},
+{y:2026,m:3,d:13,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:13,cat:'Bajadas',amt:-200000},
+{y:2026,m:3,d:14,cat:'Ingresos',amt:900000},
+{y:2026,m:3,d:14,cat:'Panel',amt:-400000},
+{y:2026,m:3,d:14,cat:'Publicidad',amt:-200000},
+{y:2026,m:3,d:14,cat:'Bajadas',amt:-300000},
+{y:2026,m:3,d:15,cat:'Ingresos',amt:800000},
+{y:2026,m:3,d:15,cat:'Panel',amt:-300000},
+{y:2026,m:3,d:15,cat:'Publicidad',amt:-300000},
+{y:2026,m:3,d:15,cat:'Bajadas',amt:-200000},
+{y:2026,m:3,d:16,cat:'Ingresos',amt:700000},
+{y:2026,m:3,d:16,cat:'Publicidad',amt:-500000},
+{y:2026,m:3,d:16,cat:'Bajadas',amt:-200000},
+{y:2026,m:3,d:17,cat:'Ingresos',amt:300000},
+{y:2026,m:3,d:17,cat:'Panel',amt:-100000},
+{y:2026,m:3,d:17,cat:'Publicidad',amt:-200000},
+{y:2026,m:3,d:18,cat:'Ingresos',amt:200000},
+{y:2026,m:3,d:18,cat:'Panel',amt:-100000},
+{y:2026,m:3,d:18,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:19,cat:'Ingresos',amt:300000},
+{y:2026,m:3,d:19,cat:'Panel',amt:-200000},
+{y:2026,m:3,d:19,cat:'otros',amt:-100000},
+{y:2026,m:3,d:20,cat:'Ingresos',amt:840000},
+{y:2026,m:3,d:20,cat:'Publicidad',amt:-200000},
+{y:2026,m:3,d:20,cat:'otros',amt:-140000},
+{y:2026,m:3,d:20,cat:'Bajadas',amt:-100000},
+{y:2026,m:3,d:20,cat:'Panel',amt:-400000},
+{y:2026,m:3,d:21,cat:'Ingresos',amt:290250},
+{y:2026,m:3,d:21,cat:'Publicidad',amt:-50000},
+{y:2026,m:3,d:21,cat:'otros',amt:-40250},
+{y:2026,m:3,d:21,cat:'Bajadas',amt:-200000},
+{y:2026,m:3,d:22,cat:'Ingresos',amt:1000000},
+{y:2026,m:3,d:22,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:22,cat:'Bajadas',amt:-500000},
+{y:2026,m:3,d:22,cat:'Panel',amt:-400000},
+{y:2026,m:3,d:23,cat:'Ingresos',amt:400000},
+{y:2026,m:3,d:23,cat:'Panel',amt:-400000},
+{y:2026,m:3,d:24,cat:'Ingresos',amt:500000},
+{y:2026,m:3,d:24,cat:'Publicidad',amt:-300000},
+{y:2026,m:3,d:24,cat:'Bajadas',amt:-200000},
+{y:2026,m:1,d:31,cat:'Bajadas',amt:2893000},
+{y:2026,m:1,d:31,cat:'Sueldos',amt:-2593000},
+{y:2026,m:1,d:31,cat:'otros',amt:-300000},
+{y:2026,m:2,d:28,cat:'Bajadas',amt:2347900},
+{y:2026,m:2,d:28,cat:'Sueldos',amt:-2047900},
+{y:2026,m:2,d:28,cat:'otros',amt:-300000},
+{y:2026,m:3,d:25,cat:'Ingresos',amt:200000},
+{y:2026,m:3,d:25,cat:'Publicidad',amt:-200000},
+{y:2026,m:3,d:27,cat:'Ingresos',amt:400000},
+{y:2026,m:3,d:27,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:27,cat:'Panel',amt:-300000},
+{y:2026,m:3,d:28,cat:'Ingresos',amt:250000},
+{y:2026,m:3,d:28,cat:'Publicidad',amt:-150000},
+{y:2026,m:3,d:28,cat:'Bajadas',amt:-100000},
+{y:2026,m:3,d:29,cat:'Ingresos',amt:150000},
+{y:2026,m:3,d:29,cat:'Publicidad',amt:-150000},
+{y:2026,m:3,d:30,cat:'Ingresos',amt:433400},
+{y:2026,m:3,d:30,cat:'otros',amt:-33400},
+{y:2026,m:3,d:30,cat:'Panel',amt:-400000},
+{y:2026,m:3,d:31,cat:'Ingresos',amt:247600},
+{y:2026,m:3,d:31,cat:'otros',amt:-47600},
+{y:2026,m:3,d:31,cat:'Bajadas',amt:-200000},
+{y:2026,m:4,d:1,cat:'Ingresos',amt:400000},
+{y:2026,m:4,d:1,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:1,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:2,cat:'Ingresos',amt:400000},
+{y:2026,m:4,d:2,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:2,cat:'Sueldos',amt:-300000},
+{y:2026,m:4,d:3,cat:'Ingresos',amt:900000},
+{y:2026,m:4,d:3,cat:'Publicidad',amt:-200000},
+{y:2026,m:4,d:3,cat:'Sueldos',amt:-300000},
+{y:2026,m:4,d:3,cat:'Panel',amt:-400000},
+{y:2026,m:4,d:4,cat:'Ingresos',amt:500000},
+{y:2026,m:4,d:4,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:4,cat:'Sueldos',amt:-300000},
+{y:2026,m:4,d:4,cat:'Panel',amt:-100000},
+{y:2026,m:4,d:5,cat:'Ingresos',amt:400000},
+{y:2026,m:4,d:5,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:5,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:6,cat:'Ingresos',amt:100000},
+{y:2026,m:4,d:6,cat:'Publicidad',amt:-100000},
+{y:2026,m:3,d:31,cat:'Bajadas',amt:2755000},
+{y:2026,m:3,d:31,cat:'otros',amt:-300000},
+{y:2026,m:3,d:31,cat:'Sueldos',amt:-2455000},
+{y:2026,m:4,d:7,cat:'Ingresos',amt:360000},
+{y:2026,m:4,d:7,cat:'Publicidad',amt:-60000},
+{y:2026,m:4,d:7,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:8,cat:'Ingresos',amt:700000},
+{y:2026,m:4,d:8,cat:'Publicidad',amt:-600000},
+{y:2026,m:4,d:8,cat:'Panel',amt:-100000},
+{y:2026,m:4,d:9,cat:'Ingresos',amt:400000},
+{y:2026,m:4,d:9,cat:'Panel',amt:-400000},
+{y:2026,m:4,d:10,cat:'Ingresos',amt:600000},
+{y:2026,m:4,d:10,cat:'Publicidad',amt:-500000},
+{y:2026,m:4,d:10,cat:'Bajadas',amt:-100000},
+{y:2026,m:4,d:11,cat:'Ingresos',amt:1400000},
+{y:2026,m:4,d:11,cat:'Publicidad',amt:-200000},
+{y:2026,m:4,d:11,cat:'Bajadas',amt:-300000},
+{y:2026,m:4,d:11,cat:'Panel',amt:-900000},
+{y:2026,m:4,d:12,cat:'Ingresos',amt:600000},
+{y:2026,m:4,d:12,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:12,cat:'Bajadas',amt:-400000},
+{y:2026,m:4,d:12,cat:'Panel',amt:-100000},
+{y:2026,m:4,d:13,cat:'Ingresos',amt:500000},
+{y:2026,m:4,d:13,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:13,cat:'Bajadas',amt:-400000},
+{y:2026,m:4,d:14,cat:'Ingresos',amt:500000},
+{y:2026,m:4,d:14,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:14,cat:'Bajadas',amt:-200000},
+{y:2026,m:4,d:14,cat:'Panel',amt:-200000},
+{y:2026,m:4,d:15,cat:'Ingresos',amt:400000},
+{y:2026,m:4,d:15,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:15,cat:'Bajadas',amt:-100000},
+{y:2026,m:4,d:15,cat:'Panel',amt:-200000},
+{y:2026,m:4,d:16,cat:'Ingresos',amt:400000},
+{y:2026,m:4,d:16,cat:'Bajadas',amt:-100000},
+{y:2026,m:4,d:16,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:17,cat:'Ingresos',amt:800000},
+{y:2026,m:4,d:17,cat:'Publicidad',amt:-200000},
+{y:2026,m:4,d:17,cat:'Bajadas',amt:-300000},
+{y:2026,m:4,d:17,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:18,cat:'Ingresos',amt:600000},
+{y:2026,m:4,d:18,cat:'Publicidad',amt:-200000},
+{y:2026,m:4,d:18,cat:'Bajadas',amt:-100000},
+{y:2026,m:4,d:18,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:19,cat:'Ingresos',amt:800000},
+{y:2026,m:4,d:19,cat:'Publicidad',amt:-400000},
+{y:2026,m:4,d:19,cat:'Bajadas',amt:-100000},
+{y:2026,m:4,d:19,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:20,cat:'Ingresos',amt:300000},
+{y:2026,m:4,d:20,cat:'Bajadas',amt:-300000},
+{y:2026,m:4,d:21,cat:'Ingresos',amt:100000},
+{y:2026,m:4,d:21,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:22,cat:'Ingresos',amt:600000},
+{y:2026,m:4,d:22,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:22,cat:'Bajadas',amt:-200000},
+{y:2026,m:4,d:22,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:23,cat:'Ingresos',amt:500000},
+{y:2026,m:4,d:23,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:23,cat:'Panel',amt:-400000},
+{y:2026,m:4,d:24,cat:'Ingresos',amt:500000},
+{y:2026,m:4,d:24,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:24,cat:'Bajadas',amt:-200000},
+{y:2026,m:4,d:24,cat:'Panel',amt:-200000},
+{y:2026,m:4,d:25,cat:'Ingresos',amt:650000},
+{y:2026,m:4,d:25,cat:'Bajadas',amt:-100000},
+{y:2026,m:4,d:25,cat:'Panel',amt:-550000},
+{y:2026,m:4,d:26,cat:'Ingresos',amt:200000},
+{y:2026,m:4,d:26,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:26,cat:'Bajadas',amt:-100000},
+{y:2026,m:4,d:27,cat:'Ingresos',amt:300000},
+{y:2026,m:4,d:27,cat:'Publicidad',amt:-200000},
+{y:2026,m:4,d:27,cat:'Bajadas',amt:-100000},
+{y:2026,m:4,d:28,cat:'Ingresos',amt:400000},
+{y:2026,m:4,d:28,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:28,cat:'Bajadas',amt:-300000},
+{y:2026,m:4,d:29,cat:'Ingresos',amt:467675},
+{y:2026,m:4,d:29,cat:'Publicidad',amt:-100000},
+{y:2026,m:4,d:29,cat:'Panel',amt:-300000},
+{y:2026,m:4,d:29,cat:'otros',amt:-67675},
+{y:2026,m:4,d:30,cat:'Ingresos',amt:200000},
+{y:2026,m:4,d:30,cat:'Bajadas',amt:-200000},
+{y:2026,m:5,d:1,cat:'Ingresos',amt:500000},
+{y:2026,m:5,d:1,cat:'Sueldos',amt:-100000},
+{y:2026,m:5,d:1,cat:'Publicidad',amt:-100000},
+{y:2026,m:5,d:1,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:2,cat:'Ingresos',amt:400000},
+{y:2026,m:5,d:2,cat:'Sueldos',amt:-300000},
+{y:2026,m:5,d:2,cat:'Publicidad',amt:-100000},
+{y:2026,m:5,d:3,cat:'Ingresos',amt:500000},
+{y:2026,m:5,d:3,cat:'Sueldos',amt:-100000},
+{y:2026,m:5,d:3,cat:'Publicidad',amt:-100000},
+{y:2026,m:5,d:3,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:4,cat:'Ingresos',amt:100000},
+{y:2026,m:5,d:4,cat:'Sueldos',amt:-100000},
+{y:2026,m:5,d:5,cat:'Ingresos',amt:700000},
+{y:2026,m:5,d:5,cat:'Sueldos',amt:-600000},
+{y:2026,m:5,d:5,cat:'Panel',amt:-100000},
+{y:2026,m:5,d:6,cat:'Ingresos',amt:700000},
+{y:2026,m:5,d:6,cat:'Sueldos',amt:-300000},
+{y:2026,m:5,d:6,cat:'Panel',amt:-400000},
+{y:2026,m:5,d:7,cat:'Ingresos',amt:100000},
+{y:2026,m:5,d:7,cat:'Publicidad',amt:-100000},
+{y:2026,m:5,d:8,cat:'Ingresos',amt:300000},
+{y:2026,m:5,d:8,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:9,cat:'Ingresos',amt:700000},
+{y:2026,m:5,d:9,cat:'Publicidad',amt:-400000},
+{y:2026,m:5,d:9,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:10,cat:'Ingresos',amt:500000},
+{y:2026,m:5,d:10,cat:'Publicidad',amt:-500000},
+{y:2026,m:5,d:11,cat:'Ingresos',amt:560000},
+{y:2026,m:5,d:11,cat:'Bajadas',amt:-100000},
+{y:2026,m:5,d:11,cat:'Publicidad',amt:-100000},
+{y:2026,m:5,d:11,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:11,cat:'otros',amt:-60000},
+{y:2026,m:5,d:12,cat:'Ingresos',amt:300000},
+{y:2026,m:5,d:12,cat:'Bajadas',amt:-100000},
+{y:2026,m:5,d:12,cat:'Publicidad',amt:-200000},
+{y:2026,m:5,d:13,cat:'Ingresos',amt:800000},
+{y:2026,m:5,d:13,cat:'Bajadas',amt:-500000},
+{y:2026,m:5,d:13,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:14,cat:'Ingresos',amt:500000},
+{y:2026,m:5,d:14,cat:'Bajadas',amt:-300000},
+{y:2026,m:5,d:14,cat:'Publicidad',amt:-100000},
+{y:2026,m:5,d:14,cat:'Panel',amt:-100000},
+{y:2026,m:5,d:15,cat:'Ingresos',amt:400000},
+{y:2026,m:5,d:15,cat:'Publicidad',amt:-100000},
+{y:2026,m:5,d:15,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:16,cat:'Ingresos',amt:600000},
+{y:2026,m:5,d:16,cat:'Bajadas',amt:-300000},
+{y:2026,m:5,d:16,cat:'Publicidad',amt:-300000},
+{y:2026,m:5,d:17,cat:'Ingresos',amt:100000},
+{y:2026,m:5,d:17,cat:'Panel',amt:-100000},
+{y:2026,m:5,d:18,cat:'Ingresos',amt:400000},
+{y:2026,m:5,d:18,cat:'Publicidad',amt:-200000},
+{y:2026,m:5,d:18,cat:'Panel',amt:-200000},
+{y:2026,m:5,d:19,cat:'Ingresos',amt:400000},
+{y:2026,m:5,d:19,cat:'Bajadas',amt:-200000},
+{y:2026,m:5,d:19,cat:'Publicidad',amt:-100000},
+{y:2026,m:5,d:19,cat:'Panel',amt:-100000},
+{y:2026,m:5,d:20,cat:'Ingresos',amt:700000},
+{y:2026,m:5,d:20,cat:'Bajadas',amt:-200000},
+{y:2026,m:5,d:20,cat:'Publicidad',amt:-200000},
+{y:2026,m:5,d:20,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:21,cat:'Ingresos',amt:500000},
+{y:2026,m:5,d:21,cat:'Bajadas',amt:-100000},
+{y:2026,m:5,d:21,cat:'Publicidad',amt:-200000},
+{y:2026,m:5,d:21,cat:'Panel',amt:-200000},
+{y:2026,m:5,d:22,cat:'Ingresos',amt:100000},
+{y:2026,m:5,d:22,cat:'Bajadas',amt:-100000},
+{y:2026,m:5,d:23,cat:'Ingresos',amt:500000},
+{y:2026,m:5,d:23,cat:'Bajadas',amt:-300000},
+{y:2026,m:5,d:23,cat:'Panel',amt:-200000},
+{y:2026,m:5,d:24,cat:'Ingresos',amt:600000},
+{y:2026,m:5,d:24,cat:'Bajadas',amt:-300000},
+{y:2026,m:5,d:24,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:25,cat:'Ingresos',amt:300000},
+{y:2026,m:5,d:25,cat:'Bajadas',amt:-300000},
+{y:2026,m:5,d:26,cat:'Ingresos',amt:100000},
+{y:2026,m:5,d:26,cat:'Bajadas',amt:-100000},
+{y:2026,m:5,d:27,cat:'Ingresos',amt:400000},
+{y:2026,m:5,d:27,cat:'Bajadas',amt:-100000},
+{y:2026,m:5,d:27,cat:'Panel',amt:-300000},
+{y:2026,m:5,d:28,cat:'Ingresos',amt:200000},
+{y:2026,m:5,d:28,cat:'Bajadas',amt:-200000},
+{y:2026,m:5,d:29,cat:'Ingresos',amt:500000},
+{y:2026,m:5,d:29,cat:'Bajadas',amt:-300000},
+{y:2026,m:5,d:29,cat:'Panel',amt:-200000},
+{y:2026,m:5,d:30,cat:'Ingresos',amt:300000},
+{y:2026,m:5,d:30,cat:'Bajadas',amt:-100000},
+{y:2026,m:5,d:30,cat:'Panel',amt:-200000},
+{y:2026,m:5,d:31,cat:'Ingresos',amt:700000},
+{y:2026,m:5,d:31,cat:'Bajadas',amt:-500000},
+{y:2026,m:5,d:31,cat:'Panel',amt:-200000},
+{y:2026,m:6,d:1,cat:'Ingresos',amt:800000},
+{y:2026,m:6,d:1,cat:'Sueldos',amt:-600000},
+{y:2026,m:6,d:1,cat:'Panel',amt:-200000},
+{y:2026,m:6,d:2,cat:'Ingresos',amt:400000},
+{y:2026,m:6,d:2,cat:'Sueldos',amt:-100000},
+{y:2026,m:6,d:2,cat:'Panel',amt:-300000},
+{y:2026,m:6,d:3,cat:'Ingresos',amt:400000},
+{y:2026,m:6,d:3,cat:'Sueldos',amt:-400000},
+{y:2026,m:6,d:4,cat:'Ingresos',amt:400000},
+{y:2026,m:6,d:4,cat:'Sueldos',amt:-200000},
+{y:2026,m:6,d:4,cat:'Panel',amt:-200000},
+{y:2026,m:6,d:5,cat:'Ingresos',amt:100000},
+{y:2026,m:6,d:5,cat:'Sueldos',amt:-100000}
 ];
+<script>
+var MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var MS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+var RUB=['Ingresos','Bajadas','Sueldos','Publicidad','Panel','otros'];
+var BC={Ingresos:'#2dce89',Bajadas:'#4d9ef7',Sueldos:'#9b8ff7',Publicidad:'#ffbe3d',Panel:'#f5365c',otros:'#5a5f72'};
+var SEL=null;
 
-let LIVE = [];       // agregado por mes desde Drive
-let LIVE_DAILY = []; // filas diarias desde Drive (con fecha)
-let ALL = [];
-let SEL_MES = null;  // {y,m} seleccionado manualmente
-let lineChart = null;
+function f(n){var a=Math.abs(n);if(a>=1000000)return(n<0?'-':'')+'$'+(a/1e6).toFixed(2)+'M';if(a>=1000)return(n<0?'-':'')+'$'+Math.round(a/1000)+'K';return(n<0?'-':'')+'$'+Math.round(a);}
+function ff(n){return(n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString('es-AR');}
+function sc(rows,cat){return rows.filter(function(r){return r.cat===cat;}).reduce(function(s,r){return s+r.amt;},0);}
+function gm(y,m){return DATA.filter(function(r){return r.y===y&&r.m===m;});}
+function pm(y,m){return m===1?{y:y-1,m:12}:{y:y,m:m-1};}
 
-// ── UTILS ──
-function fmt(n){
-  const a=Math.abs(n);
-  if(a>=1000000) return (n<0?'-':'')+'$'+(a/1e6).toFixed(2)+'M';
-  if(a>=1000) return (n<0?'-':'')+'$'+(a/1e3).toFixed(0)+'K';
-  return (n<0?'-':'')+'$'+a.toFixed(0);
-}
-function fmtFull(n){ return (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('es-AR'); }
-function sumCat(rows,cat){ return rows.filter(function(r){return r.cat===cat;}).reduce(function(s,r){return s+r.amt;},0); }
-function getMes(y,m){ return ALL.filter(function(r){return r.y===y&&r.m===m;}); }
-function prevMes(y,m){ return m===1?{y:y-1,m:12}:{y:y,m:m-1}; }
-
-// ── MERGE ──
-function mergeData(){
-  var liveMeses = {};
-  LIVE.forEach(function(r){ liveMeses[r.y+'_'+r.m]=true; });
-  var base = HIST.filter(function(r){ return !liveMeses[r.y+'_'+r.m]; });
-  ALL = base.concat(LIVE).sort(function(a,b){ return a.y!==b.y?a.y-b.y:a.m-b.m; });
-  console.log('ALL months:', [...new Set(ALL.map(function(r){return r.y+'/'+r.m;}))].join(', '));
-}
-
-// ── FETCH ──
-async function fetchData(){
-  try{
-    document.getElementById('loader').style.display='flex';
-    document.getElementById('app').style.display='none';
-    var res = await fetch(API);
-    var json = await res.json();
-    if(json.error) throw new Error(json.error);
-
-    LIVE_DAILY = json.rows.filter(function(r){return r.amt!==0;});
-
-    // Aggregate into monthly for KPIs/chart
-    var map = {};
-    LIVE_DAILY.forEach(function(r){
-      var k = r.y+'_'+r.m+'_'+r.cat;
-      if(!map[k]) map[k]={y:r.y,m:r.m,cat:r.cat,amt:0};
-      map[k].amt += r.amt;
-    });
-    LIVE = Object.keys(map).map(function(k){return map[k];});
-
-    mergeData();
-    fillSelect(getActive());
-    var d = new Date(json.updated);
-    document.getElementById('sync').textContent = 'Última sync: '+d.toLocaleString('es-AR');
-    render();
-    document.getElementById('loader').style.display='none';
-    document.getElementById('app').style.display='block';
-  }catch(e){
-    document.getElementById('loader').innerHTML = '<div style="color:#f5365c;text-align:center"><p style="font-size:22px">⚠</p><p style="font-size:12px;margin-top:8px">'+e.message+'</p><button class="btn" style="margin-top:12px" onclick="fetchData()">Reintentar</button></div>';
-  }
-}
-
-// ── ACTIVE MES ──
-function getLatest(){
-  var best={y:2024,m:5};
-  ALL.filter(function(r){return r.cat==='Ingresos'&&r.amt>0;}).forEach(function(r){
-    if(r.y>best.y||(r.y===best.y&&r.m>best.m)) best={y:r.y,m:r.m};
+function latest(){
+  var best={y:2024,m:5},seen={};
+  DATA.forEach(function(r){
+    var k=r.y+'_'+r.m;
+    if(!seen[k]&&r.cat==='Ingresos'&&r.amt>0){seen[k]=true;if(r.y>best.y||(r.y===best.y&&r.m>best.m))best={y:r.y,m:r.m};}
   });
   return best;
 }
-function getActive(){ return SEL_MES||getLatest(); }
+function active(){return SEL||latest();}
 
-// ── RENDER ──
-function render(){
-  var act = getActive();
-  fillSelect(act);
-  renderKPIs(act);
-  renderBars(act);
-  renderKanban(act);
-  renderChart();
-  renderTable();
-  document.getElementById('fcnt').textContent = ALL.length+' registros · mes: '+MNAMES[act.m-1]+' '+act.y;
+function init(){
+  var act=active(),seen={},meses=[];
+  DATA.forEach(function(r){var k=r.y+'-'+(r.m<10?'0':'')+r.m;if(!seen[k]){seen[k]=true;meses.push({k:k,y:r.y,m:r.m});}});
+  meses.sort(function(a,b){return b.y!==a.y?b.y-a.y:b.m-a.m;});
+  var ak=act.y+'-'+(act.m<10?'0':'')+act.m,h='';
+  meses.forEach(function(x){h+='<option value="'+x.k+'"'+(x.k===ak?' selected':'')+'>'+MN[x.m-1]+' '+x.y+'</option>';});
+  document.getElementById('selMes').innerHTML=h;
+  buildAll(act);
 }
 
-function fillSelect(act){
-  var sel = document.getElementById('selMes');
-  var seen = {};
-  var meses = [];
-  // Use ALL if populated, otherwise fall back to HIST
-  var source = ALL.length > 0 ? ALL : HIST;
-  source.forEach(function(r){
-    var k = r.y+'-'+(r.m<10?'0':'')+r.m;
-    if(!seen[k]){seen[k]=true;meses.push({k:k,y:r.y,m:r.m});}
-  });
-  meses.sort(function(a,b){ return b.y!==a.y ? b.y-a.y : b.m-a.m; });
-  var actKey = act.y+'-'+(act.m<10?'0':'')+act.m;
-  var html='';
-  meses.forEach(function(x){
-    html += '<option value="'+x.k+'"'+(x.k===actKey?' selected':'')+'>'+MNAMES[x.m-1]+' '+x.y+'</option>';
-  });
-  sel.innerHTML = html;
-  console.log('fillSelect: '+meses.length+' meses, activo='+actKey);
+function buildAll(act){
+  buildKPIs(act);buildBars(act);buildKanban(act);
+  document.getElementById('fcnt').textContent=DATA.length+' registros · mes: '+MN[act.m-1]+' '+act.y;
 }
 
-function onMesChange(){
-  var val = document.getElementById('selMes').value;
-  var parts = val.split('-');
-  SEL_MES = {y:parseInt(parts[0]),m:parseInt(parts[1])};
-  var act = SEL_MES;
-  document.getElementById('tit-bars').textContent = MNAMES[act.m-1]+' '+act.y;
-  document.getElementById('tit-kan').textContent = MNAMES[act.m-1]+' '+act.y;
-  renderKPIs(act);
-  renderBars(act);
-  renderKanban(act);
+function changeMes(){
+  var v=document.getElementById('selMes').value,p=v.split('-');
+  SEL={y:parseInt(p[0]),m:parseInt(p[1])};buildAll(SEL);
 }
 
-// ── KPIs ──
-function renderKPIs(act){
-  var rows = getMes(act.y,act.m);
-  var prev = prevMes(act.y,act.m);
-  var rowsP = getMes(prev.y,prev.m);
-  var ing=sumCat(rows,'Ingresos'), baj=Math.abs(sumCat(rows,'Bajadas'));
-  var sue=sumCat(rows,'Sueldos'), pub=sumCat(rows,'Publicidad'), pan=sumCat(rows,'Panel'), otr=sumCat(rows,'otros');
-  var gasto=sue+pub+pan+otr;
-  var neto=ing+baj+gasto;
+function buildKPIs(act){
+  var r=gm(act.y,act.m),pv=pm(act.y,act.m),rp=gm(pv.y,pv.m);
+  var ing=sc(r,'Ingresos'),baj=Math.abs(sc(r,'Bajadas'));
+  var sue=sc(r,'Sueldos'),pub=sc(r,'Publicidad'),pan=sc(r,'Panel'),otr=sc(r,'otros');
+  var neto=ing+baj+sue+pub+pan+otr;
   var margen=ing>0?Math.round(baj/ing*1000)/10:0;
-  var ingP=sumCat(rowsP,'Ingresos');
-  var netoP=sumCat(rowsP,'Ingresos')+Math.abs(sumCat(rowsP,'Bajadas'))+sumCat(rowsP,'Sueldos')+sumCat(rowsP,'Publicidad')+sumCat(rowsP,'Panel')+sumCat(rowsP,'otros');
-  var dIng=ingP>0?Math.round((ing-ingP)/ingP*1000)/10:0;
-  var dNeto=Math.abs(netoP)>0?Math.round((neto-netoP)/Math.abs(netoP)*1000)/10:0;
-  var label=MSHORT[act.m-1]+' '+act.y;
-  var prevLabel=MSHORT[prev.m-1];
-
-  document.getElementById('kpis').innerHTML =
-    kpi('kg','Ingresos '+label,fmt(ing),'pos',dIng,'vs '+prevLabel+': '+fmt(ingP))+
-    kpi('kb','Bajadas · ganancia',fmt(baj),'bl',null,margen+'% sobre ingresos')+
-    kpi('ks','Sueldos',fmt(sue),'neg',null,'personal')+
-    kpi('ka','Publicidad',fmt(pub),pub>=0?'pos':'neg',null,'marketing')+
-    kpi('kr','Panel + Otros',fmt(pan+otr),'neg',null,'infraestructura')+
-    kpi(neto>=0?'kg':'kr','Resultado neto',fmt(neto),neto>=0?'pos':'neg',dNeto,'ing+gcia-gastos');
-}
-
-function kpi(cls,label,val,vcls,delta,sub){
-  var tr='';
-  if(delta!==null){
-    var up=delta>=0;
-    tr='<span class="trend '+(up?'tup':'tdn')+'">'+(up?'↑':'↓')+Math.abs(delta)+'%</span>';
+  var ingP=sc(rp,'Ingresos');
+  var netoP=sc(rp,'Ingresos')+Math.abs(sc(rp,'Bajadas'))+sc(rp,'Sueldos')+sc(rp,'Publicidad')+sc(rp,'Panel')+sc(rp,'otros');
+  var di=ingP>0?Math.round((ing-ingP)/ingP*1000)/10:0;
+  var dn=Math.abs(netoP)>0?Math.round((neto-netoP)/Math.abs(netoP)*1000)/10:0;
+  function kk(bc,lb,val,vc,d,s){
+    var t=d!==null?'<span class="tr '+(d>=0?'tru':'trd')+'">'+(d>=0?'↑':'↓')+Math.abs(d)+'%</span>':'';
+    return '<div class="kpi" style="border-top-color:'+bc+'"><div class="klbl">'+lb+'</div><div class="kval '+vc+'">'+val+t+'</div><div class="ksub">'+s+'</div></div>';
   }
-  return '<div class="kpi '+cls+'"><div class="klbl">'+label+'</div><div class="kval '+vcls+'">'+val+tr+'</div><div class="ksub">'+sub+'</div></div>';
+  document.getElementById('kpis').innerHTML=
+    kk('#2dce89','Ingresos '+MS[act.m-1]+' '+act.y,f(ing),'g',di,'vs '+MS[pv.m-1]+': '+f(ingP))+
+    kk('#4d9ef7','Bajadas · ganancia',f(baj),'b',null,margen+'% s/ingresos')+
+    kk('#9b8ff7','Sueldos',f(sue),'r',null,'personal')+
+    kk('#ffbe3d','Publicidad',f(pub),pub>=0?'g':'r',null,'marketing')+
+    kk('#f5365c','Panel + Otros',f(pan+otr),'r',null,'infraestructura')+
+    kk(neto>=0?'#2dce89':'#f5365c','Resultado neto',f(neto),neto>=0?'g':'r',dn,'ing+gcia-gastos');
 }
 
-// ── BARS ──
-function renderBars(act){
-  document.getElementById('tit-bars').textContent = MNAMES[act.m-1]+' '+act.y;
-  var rows=getMes(act.y,act.m);
-  var vals=RUBROS.map(function(c){return{cat:c,val:sumCat(rows,c)};}).filter(function(x){return x.val!==0;});
-  var maxA=Math.max.apply(null,vals.map(function(x){return Math.abs(x.val);}));
-  var html='';
+function buildBars(act){
+  document.getElementById('titBars').textContent=MN[act.m-1]+' '+act.y;
+  var r=gm(act.y,act.m),vals=[],mx=0;
+  RUB.forEach(function(c){var v=sc(r,c);if(v!==0){vals.push({cat:c,val:v});if(Math.abs(v)>mx)mx=Math.abs(v);}});
+  var h='';
   vals.forEach(function(x){
-    var isBaj=x.cat==='Bajadas';
-    var disp=isBaj?Math.abs(x.val):x.val;
-    var col=isBaj?'#4d9ef7':disp>=0?'#2dce89':'#f5365c';
-    var pct=maxA?Math.round(Math.abs(x.val)/maxA*1000)/10:0;
-    html+='<div class="brow"><span class="blbl">'+x.cat+'</span><div class="btrack"><div class="bfill" style="width:'+pct+'%;background:'+BARCOL[x.cat]+'"></div></div><span class="bamt" style="color:'+col+'">'+fmtFull(disp)+'</span></div>';
+    var iB=x.cat==='Bajadas',d=iB?Math.abs(x.val):x.val,col=iB?'#4d9ef7':d>=0?'#2dce89':'#f5365c';
+    var pct=mx?Math.round(Math.abs(x.val)/mx*1000)/10:0;
+    h+='<div class="brow"><span class="blbl">'+x.cat+'</span><div class="btrack"><div class="bfill" style="width:'+pct+'%;background:'+BC[x.cat]+'"></div></div><span class="bamt" style="color:'+col+'">'+ff(d)+'</span></div>';
   });
-  document.getElementById('bars').innerHTML=html;
+  document.getElementById('bars').innerHTML=h;
 }
 
-// ── KANBAN ──
-function renderKanban(act){
-  document.getElementById('tit-kan').textContent = MNAMES[act.m-1]+' '+act.y;
+function buildKanban(act){
+  document.getElementById('titKan').textContent=MN[act.m-1]+' '+act.y;
   var dim=new Date(act.y,act.m,0).getDate();
   var ranges=[[1,7],[8,14],[15,21],[22,28]];
-  if(dim>28) ranges.push([29,dim]);
-
-  // Check if we have daily rows for this month
-  var daily=LIVE_DAILY.filter(function(r){return r.y===act.y&&r.m===act.m;});
-  var hasDailyData=daily.length>0;
-
-  var html='';
-  ranges.forEach(function(range){
-    var s=range[0], e=Math.min(range[1],dim);
-    var wv={};
-    RUBROS.forEach(function(c){wv[c]=0;});
-
-    if(hasDailyData){
-      daily.forEach(function(r){
-        var day=parseInt(r.fecha.split('/')[0]);
-        if(day>=s&&day<=e&&wv[r.cat]!==undefined) wv[r.cat]+=r.amt;
-      });
-    } else if(s===1){
-      // Monthly data: show totals only in week 1
-      var rows=getMes(act.y,act.m);
-      RUBROS.forEach(function(c){wv[c]=sumCat(rows,c);});
-    }
-
-    var ing=wv['Ingresos'], baj=Math.abs(wv['Bajadas']);
-    var gasto=wv['Sueldos']+wv['Publicidad']+wv['Panel']+wv['otros'];
-    var neto=ing+baj+gasto;
-    var hasData=RUBROS.some(function(c){return wv[c]!==0;});
-    var dotCol=hasData?(neto>=0?'#2dce89':'#f5365c'):'#5a5f72';
-
-    html+='<div class="kcol"><div class="khead"><span class="kdot" style="background:'+dotCol+'"></span>'+s+'–'+e+'</div>';
-    RUBROS.forEach(function(cat){
-      var v=wv[cat], isBaj=cat==='Bajadas', disp=isBaj?Math.abs(v):v;
-      var col=isBaj?'#4d9ef7':v>=0?'#2dce89':'#f5365c';
-      if(!v){
-        html+='<div class="kcard empty"><div class="krub">'+cat+'</div><div class="kamt" style="color:#7a7f94">—</div></div>';
-      } else {
-        html+='<div class="kcard"><div class="krub">'+cat+(isBaj?' ✓':'')+'</div><div class="kamt" style="color:'+col+'">'+fmt(disp)+'</div></div>';
-      }
+  if(dim>28)ranges.push([29,dim]);
+  var daily=DATA.filter(function(r){return r.y===act.y&&r.m===act.m;});
+  var h='';
+  ranges.forEach(function(rng){
+    var s=rng[0],e=Math.min(rng[1],dim),wv={};
+    RUB.forEach(function(c){wv[c]=0;});
+    daily.forEach(function(r){if(r.d>=s&&r.d<=e&&wv[r.cat]!==undefined)wv[r.cat]+=r.amt;});
+    var ing=wv['Ingresos'],baj=Math.abs(wv['Bajadas']);
+    var neto=ing+baj+wv['Sueldos']+wv['Publicidad']+wv['Panel']+wv['otros'];
+    var hasD=RUB.some(function(c){return wv[c]!==0;});
+    var dc=hasD?(neto>=0?'#2dce89':'#f5365c'):'#5a5f72';
+    h+='<div class="kcol"><div class="khead"><span class="kdot" style="background:'+dc+'"></span>'+s+'–'+e+'</div>';
+    RUB.forEach(function(cat){
+      var v=wv[cat],iB=cat==='Bajadas',d=iB?Math.abs(v):v,col=iB?'#4d9ef7':v>=0?'#2dce89':'#f5365c';
+      if(!v)h+='<div class="kcard em"><div class="krub">'+cat+'</div><div class="kamt" style="color:#5a5f72">—</div></div>';
+      else h+='<div class="kcard"><div class="krub">'+cat+(iB?' ✓':'')+'</div><div class="kamt" style="color:'+col+'">'+f(d)+'</div></div>';
     });
-    if(hasData){
-      html+='<div class="kneto" style="background:'+(neto>=0?'rgba(45,206,137,.08)':'rgba(245,54,92,.08)')+';border:1px solid '+(neto>=0?'rgba(45,206,137,.2)':'rgba(245,54,92,.2)')+';color:'+(neto>=0?'#2dce89':'#f5365c')+'">'+fmt(neto)+'</div>';
-    }
-    html+='</div>';
+    if(hasD)h+='<div class="kneto" style="background:'+(neto>=0?'rgba(45,206,137,.08)':'rgba(245,54,92,.08)')+';border:1px solid '+(neto>=0?'rgba(45,206,137,.2)':'rgba(245,54,92,.2)')+';color:'+(neto>=0?'#2dce89':'#f5365c')+'">'+f(neto)+'</div>';
+    h+='</div>';
   });
-  document.getElementById('kanban').innerHTML=html;
+  document.getElementById('kanban').innerHTML=h;
 }
 
-// ── CHART ──
-function renderChart(){
-  var from=new Date(document.getElementById('dFrom').value);
-  var to=new Date(document.getElementById('dTo').value);
-  to.setHours(23,59,59);
-  var mode=document.getElementById('cMode').value;
-  var rubro=document.getElementById('cRubro').value;
-
-  var filtered=ALL.filter(function(r){
-    var dt=new Date(r.y,r.m-1,1);
-    return dt>=from&&dt<=to;
-  });
-
-  var mkeys=[];
-  var seen={};
-  filtered.forEach(function(r){
-    var k=r.y+'-'+(r.m<10?'0':'')+r.m;
-    if(!seen[k]){seen[k]=true;mkeys.push(k);}
-  });
-  mkeys.sort();
-
-  var datasets=[];
-  function addDs(label,color,dash,data){
-    datasets.push({label:label,data:data,borderColor:color,backgroundColor:color.replace('rgb','rgba').replace(')',', .08)'),fill:true,tension:.35,pointRadius:3,pointBackgroundColor:color,borderWidth:2,borderDash:dash||[]});
-  }
-
-  function getMonthVal(mk,rb){
-    var parts=mk.split('-');
-    var y=parseInt(parts[0]),m=parseInt(parts[1]);
-    var mr=filtered.filter(function(r){return r.y===y&&r.m===m;});
-    if(rb==='I') return sumCat(mr,'Ingresos');
-    if(rb==='B') return Math.abs(sumCat(mr,'Bajadas'));
-    if(rb==='N'){
-      var ing=sumCat(mr,'Ingresos'),baj=Math.abs(sumCat(mr,'Bajadas'));
-      var g=sumCat(mr,'Sueldos')+sumCat(mr,'Publicidad')+sumCat(mr,'Panel')+sumCat(mr,'otros');
-      return ing+baj+g;
-    }
-    return 0;
-  }
-
-  if(rubro==='IB'){
-    var cumI=0,cumB=0;
-    var dI=[],dB=[];
-    mkeys.forEach(function(mk){
-      var vi=getMonthVal(mk,'I'), vb=getMonthVal(mk,'B');
-      if(mode==='acum'){cumI+=vi;cumB+=vb;dI.push(Math.round(cumI/1e6*100)/100);dB.push(Math.round(cumB/1e6*100)/100);}
-      else{dI.push(Math.round(vi/1e6*100)/100);dB.push(Math.round(vb/1e6*100)/100);}
-    });
-    addDs('Ingresos','#2dce89',[],dI);
-    addDs('Bajadas','#4d9ef7',[5,4],dB);
-  } else {
-    var rb2=rubro==='N'?'N':rubro;
-    var cum=0,d=[];
-    mkeys.forEach(function(mk){
-      var v=getMonthVal(mk,rb2);
-      if(mode==='acum'){cum+=v;d.push(Math.round(cum/1e6*100)/100);}
-      else d.push(Math.round(v/1e6*100)/100);
-    });
-    var col=rubro==='N'?'#2dce89':'#4d9ef7';
-    addDs(rubro==='N'?'Resultado neto':'Bajadas',col,[],d);
-  }
-
-  var labels=mkeys.map(function(k){
-    var parts=k.split('-');
-    return MSHORT[parseInt(parts[1])-1]+' '+parts[0].slice(2);
-  });
-
-  if(lineChart) lineChart.destroy();
-  lineChart=new Chart(document.getElementById('chart'),{
-    type:'line',data:{labels:labels,datasets:datasets},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': $'+ctx.parsed.y.toFixed(2)+'M';}}}},
-      scales:{
-        x:{ticks:{color:'#7a7f94',font:{size:9},autoSkip:true,maxTicksLimit:18,maxRotation:45},grid:{display:false}},
-        y:{ticks:{color:'#7a7f94',font:{size:9},callback:function(v){return '$'+v+'M';}},grid:{color:'rgba(255,255,255,.05)'}}
-      }
-    }
-  });
-
-  var legHtml='';
-  datasets.forEach(function(ds){
-    legHtml+='<span><span class="ld" style="background:'+ds.borderColor+'"></span>'+ds.label+'</span>';
-  });
-  document.getElementById('leg').innerHTML=legHtml;
-}
-
-// ── TABLE ──
-function renderTable(){
-  var q=(document.getElementById('tSrch').value||'').toLowerCase();
-  var cat=document.getElementById('tCat').value;
-  var yr=document.getElementById('tAno').value;
-  var rows=ALL.slice().reverse().filter(function(r){
-    if(cat&&r.cat!==cat) return false;
-    if(yr&&String(r.y)!==yr) return false;
-    if(q&&!(MNAMES[r.m-1].toLowerCase().indexOf(q)>=0||r.cat.toLowerCase().indexOf(q)>=0||String(r.y).indexOf(q)>=0)) return false;
-    return true;
-  });
-  var html='';
-  rows.forEach(function(r){
-    var isBaj=r.cat==='Bajadas', disp=isBaj?Math.abs(r.amt):r.amt;
-    var col=isBaj?'#4d9ef7':disp>=0?'#2dce89':'#f5365c';
-    html+='<tr><td>'+MSHORT[r.m-1]+' '+r.y+'</td><td><span class="tag '+TAGCLS[r.cat]+'">'+r.cat+(isBaj?' ✓':'')+'</span></td><td style="color:'+col+';font-weight:500">'+fmtFull(disp)+'</td></tr>';
-  });
-  document.getElementById('tbody').innerHTML=html||'<tr><td colspan="3" style="color:#7a7f94;text-align:center">Sin resultados</td></tr>';
-}
-
-// ── INIT ──
-fetchData();
-setInterval(fetchData,30000);
+init();
 </script>
-</body>
 </html>
